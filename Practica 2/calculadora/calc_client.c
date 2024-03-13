@@ -14,11 +14,31 @@ void printSimpleOperation(struct operation Operation)
 	printf("[ %f %s %f ]", Operation.operator1, &Operation.operator, Operation.operator2);
 }
 
+bool correctOperator(struct operation Operation)
+{
+	bool toReturn = true;
+
+	if (!strcmp(&Operation.operator, "+") ||
+		!strcmp(&Operation.operator, "-") ||
+		!strcmp(&Operation.operator, "*") ||
+		!strcmp(&Operation.operator, "x") ||
+		!strcmp(&Operation.operator, "/"))
+	{
+		toReturn = true;
+	}
+	else
+	{
+		toReturn = false;
+	}
+
+	return toReturn;
+}
+
 struct operation interactiveLoadSimpleOperation()
 {
 	struct operation Operation;
 	bool ok = false;
-	char * answer;
+	char *answer;
 
 	do
 	{
@@ -30,7 +50,7 @@ struct operation interactiveLoadSimpleOperation()
 		scanf("%f", &Operation.operator2);
 		printf("\nSu operación: ");
 		printSimpleOperation(Operation);
-		if (Operation.operator2 != 0)
+		if (Operation.operator2 != 0 && correctOperator(Operation))
 		{
 			printf("\n¿Es esta la operación que desea realizar? [Y/n] ");
 			scanf("%s", &answer);
@@ -45,7 +65,7 @@ struct operation interactiveLoadSimpleOperation()
 		}
 		else
 		{
-			printf("\nError: No puedes dividir por 0!\n\n");
+			printf("\nError: Operación no válida\n\n");
 		}
 	} while (!ok);
 

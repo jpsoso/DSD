@@ -21,16 +21,12 @@ operate_1_svc(operation arg1,  struct svc_req *rqstp)
 		result = arg1.operator1 - arg1.operator2;
 		break;
 
-	case '*':
+	case '*' || 'x':
 		result = arg1.operator1 * arg1.operator2;
 		break;
 
 	case '/':
 		result = arg1.operator1 / arg1.operator2;
-		break;
-
-	case '%':
-		result = ((int)arg1.operator1 % (int)arg1.operator2);
 		break;
 
 	default:
