@@ -4,63 +4,44 @@
  * as a guideline for developing your own functions.
  */
 
-#include "dir.h" /* creado por rpcgen */
-#include <errno.h>
+#include "dir.h"
 
 
-void dirprog_1(char *server, nametype dir)
+void
+dirprog_1(char *host)
 {
 	CLIENT *clnt;
-	readdir_res *result;
-	namelist nl;
+	readdir_res  *result_1;
+	nametype readdir_1_arg1;
 
-#ifndef DEBUG
-	clnt = clnt_create(server, DIRPROG, DIRVER, "udp"); // almacenamos información para la conexión. importante los parámetros !! 
-	if (clnt == (CLIENT *)NULL)
-	{
-		clnt_pcreateerror(server);
-		exit(1);
+#ifndef	DEBUG
+	clnt = clnt_create (host, DIRPROG, DIRVER, "udp");
+	if (clnt == NULL) {
+		clnt_pcreateerror (host);
+		exit (1);
 	}
-#endif /* DEBUG */
+#endif	/* DEBUG */
 
-	result = readdir_1(dir, clnt); // llamamos al servicio RPC
-	if (result == (readdir_res *)NULL)
-	{
-		clnt_perror(clnt, server);
-		exit(1);
+	result_1 = readdir_1(readdir_1_arg1, clnt);
+	if (result_1 == (readdir_res *) NULL) {
+		clnt_perror (clnt, "call failed");
 	}
-
-	if (result->errnum != 0)
-	{
-		errno = result->errnum;
-		perror(dir);
-		exit(1);
-	}
-
-	for (nl = result->readdir_res_u.list; nl != NULL; nl = nl->next)
-		printf("%s\n", nl->name);
-
-	xdr_free(xdr_readdir_res, result);
-
-#ifndef DEBUG
-	clnt_destroy(clnt);
-#endif /* DEBUG */
-
-	exit(0);
+#ifndef	DEBUG
+	clnt_destroy (clnt);
+#endif	 /* DEBUG */
 }
 
 
-int main(int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
-	char *server;
-	nametype dir;
-	setbuf(stdout, NULL);
-	if (argc < 3)
-	{
-		printf("usage:  %s server_host directory\n", argv[0]);
-		exit(1);
+	char *host;
+
+	if (argc < 2) {
+		printf ("usage: %s server_host\n", argv[0]);
+		exit (1);
 	}
-	server = argv[1];
-	dir = argv[2];
-	dirprog_1(server, dir);
+	host = argv[1];
+	dirprog_1 (host);
+exit (0);
 }

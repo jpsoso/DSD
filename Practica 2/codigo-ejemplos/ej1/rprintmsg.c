@@ -1,6 +1,6 @@
 /* Archivo  rprintmsg.c: programa cliente */
 #include <stdio.h>
-#include "msg.h"
+#include "/msg.h"
 
 main(argc, argv)
 int argc;

@@ -4,20 +4,20 @@
  */
 
 #include <memory.h> /* for memset */
-#include "dir.h"
+#include "calc.h"
 
 /* Default timeout can be changed using clnt_control() */
 static struct timeval TIMEOUT = { 25, 0 };
 
-readdir_res *
-readdir_1(nametype *argp, CLIENT *clnt)
+float *
+operate_1(operation arg1,  CLIENT *clnt)
 {
-	static readdir_res clnt_res;
+	static float clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, READDIR,
-		(xdrproc_t) xdr_nametype, (caddr_t) argp,
-		(xdrproc_t) xdr_readdir_res, (caddr_t) &clnt_res,
+	if (clnt_call (clnt, OPERATE,
+		(xdrproc_t) xdr_operation, (caddr_t) &arg1,
+		(xdrproc_t) xdr_float, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}

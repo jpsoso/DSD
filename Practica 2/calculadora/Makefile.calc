@@ -3,18 +3,18 @@
 
 # Parameters
 
-CLIENT = dir_client
-SERVER = dir_server
+CLIENT = calc_client
+SERVER = calc_server
 
 SOURCES_CLNT.c = 
 SOURCES_CLNT.h = 
 SOURCES_SVC.c = 
 SOURCES_SVC.h = 
-SOURCES.x = dir.x
+SOURCES.x = calc.x
 
-TARGETS_SVC.c = dir_svc.c dir_server.c dir_xdr.c 
-TARGETS_CLNT.c = dir_clnt.c dir_client.c dir_xdr.c 
-TARGETS = dir.h dir_xdr.c dir_clnt.c dir_svc.c dir_client.c dir_server.c
+TARGETS_SVC.c = calc_svc.c calc_server.c calc_xdr.c 
+TARGETS_CLNT.c = calc_clnt.c calc_client.c calc_xdr.c 
+TARGETS = calc.h calc_xdr.c calc_clnt.c calc_svc.c calc_client.c calc_server.c
 
 OBJECTS_CLNT = $(SOURCES_CLNT.c:%.c=%.o) $(TARGETS_CLNT.c:%.c=%.o)
 OBJECTS_SVC = $(SOURCES_SVC.c:%.c=%.o) $(TARGETS_SVC.c:%.c=%.o)

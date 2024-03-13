@@ -8,7 +8,8 @@
 #include <dirent.h>
 #include <errno.h>
 
-readdir_res *readdir_1_svc(nametype dirname, struct svc_req *rqstp) // el segundo parámetro es generado por rpcgen, no la usaremos
+readdir_res *
+readdir_1_svc(nametype arg1,  struct svc_req *rqstp)
 {
 	DIR *dirp;
 	struct dirent *d;

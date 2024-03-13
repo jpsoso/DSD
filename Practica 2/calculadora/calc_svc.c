@@ -3,7 +3,7 @@
  * It was generated using rpcgen.
  */
 
-#include "dir.h"
+#include "calc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <rpc/pmap_clnt.h>
@@ -16,11 +16,17 @@
 #define SIG_PF void(*)(int)
 #endif
 
+static float *
+_operate_1 (operation  *argp, struct svc_req *rqstp)
+{
+	return (operate_1_svc(*argp, rqstp));
+}
+
 static void
-dirprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
+calculator_1(struct svc_req *rqstp, register SVCXPRT *transp)
 {
 	union {
-		nametype readdir_1_arg;
+		operation operate_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -31,10 +37,10 @@ dirprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		(void) svc_sendreply (transp, (xdrproc_t) xdr_void, (char *)NULL);
 		return;
 
-	case READDIR:
-		_xdr_argument = (xdrproc_t) xdr_nametype;
-		_xdr_result = (xdrproc_t) xdr_readdir_res;
-		local = (char *(*)(char *, struct svc_req *)) readdir_1_svc;
+	case OPERATE:
+		_xdr_argument = (xdrproc_t) xdr_operation;
+		_xdr_result = (xdrproc_t) xdr_float;
+		local = (char *(*)(char *, struct svc_req *)) _operate_1;
 		break;
 
 	default:
@@ -62,15 +68,15 @@ main (int argc, char **argv)
 {
 	register SVCXPRT *transp;
 
-	pmap_unset (DIRPROG, DIRVER);
+	pmap_unset (CALCULATOR, SIMPLEOPERATION);
 
 	transp = svcudp_create(RPC_ANYSOCK);
 	if (transp == NULL) {
 		fprintf (stderr, "%s", "cannot create udp service.");
 		exit(1);
 	}
-	if (!svc_register(transp, DIRPROG, DIRVER, dirprog_1, IPPROTO_UDP)) {
-		fprintf (stderr, "%s", "unable to register (DIRPROG, DIRVER, udp).");
+	if (!svc_register(transp, CALCULATOR, SIMPLEOPERATION, calculator_1, IPPROTO_UDP)) {
+		fprintf (stderr, "%s", "unable to register (CALCULATOR, SIMPLEOPERATION, udp).");
 		exit(1);
 	}
 
@@ -79,8 +85,8 @@ main (int argc, char **argv)
 		fprintf (stderr, "%s", "cannot create tcp service.");
 		exit(1);
 	}
-	if (!svc_register(transp, DIRPROG, DIRVER, dirprog_1, IPPROTO_TCP)) {
-		fprintf (stderr, "%s", "unable to register (DIRPROG, DIRVER, tcp).");
+	if (!svc_register(transp, CALCULATOR, SIMPLEOPERATION, calculator_1, IPPROTO_TCP)) {
+		fprintf (stderr, "%s", "unable to register (CALCULATOR, SIMPLEOPERATION, tcp).");
 		exit(1);
 	}
 

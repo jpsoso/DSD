@@ -38,8 +38,8 @@ typedef struct readdir_res readdir_res;
 
 #if defined(__STDC__) || defined(__cplusplus)
 #define READDIR 1
-extern  readdir_res * readdir_1(nametype , CLIENT *);
-extern  readdir_res * readdir_1_svc(nametype , struct svc_req *);
+extern  readdir_res * readdir_1(nametype *, CLIENT *);
+extern  readdir_res * readdir_1_svc(nametype *, struct svc_req *);
 extern int dirprog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
