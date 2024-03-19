@@ -5,25 +5,105 @@
  */
 
 #include "calc.h"
+#include <math.h>
 
 float *
 operate_1_svc(operation arg1,  struct svc_req *rqstp)
 {
 	static float  result;
 
-	/*
-	 * insert server code here
-	 */
+	switch (arg1.operator)
+	{
+	case '+':
+		result = arg1.operator1 + arg1.operator2;
+		break;
+
+	case '-':
+		result = arg1.operator1 - arg1.operator2;
+		break;
+
+	case '*' || 'x':
+		result = arg1.operator1 * arg1.operator2;
+		break;
+
+	case '/':
+		result = arg1.operator1 / arg1.operator2;
+		break;
+
+	case '^':
+		result = pow(arg1.operator1, arg1.operator2);
+		break;
+
+	case 's':
+		result = sin(arg1.operator2);
+		break;
+
+	case 'c':
+		result = cos(arg1.operator2);
+		break;
+
+	case 't':
+		result = tan(arg1.operator2);
+		break;
+	
+	case 'l':
+		result = log(arg1.operator2);
+		break;
+		
+	default:
+		break;
+	}
 
 	return &result;
 }
+
+resultVect suma(operationVector operation)
+{
+	resultVect result;
+	for (int i = 0; i < MAX; ++i)
+	{
+		result.vec[i] = operation.vec1[i] + operation.vec2[i];
+	}
+	return result;
+}
+
+resultVect resta(operationVector operation)
+{
+	resultVect result;
+	for (int i = 0; i < MAX; ++i)
+	{
+		result.vec[i] = operation.vec1[i] - operation.vec2[i];
+	}
+	return result;
+}
+
+resultVect prodEscalar(operationVector operation)
+{
+	resultVect result;
+	for (int i = 0; i < MAX; ++i)
+	{
+		result.vec[0] += operation.vec1[i] * operation.vec2[i];
+	}
+	return result;
+}
+
+resultVect prodVectorial(operationVector operation)
+{
+	resultVect result;
+	result.vec[0] = operation.vec1[1] * operation.vec2[2] - operation.vec1[2] * operation.vec2[1];
+	result.vec[1] = operation.vec1[2] * operation.vec2[0] - operation.vec1[0] * operation.vec2[2];
+	result.vec[2] = operation.vec1[0] * operation.vec2[1] - operation.vec1[1] * operation.vec2[0];
+	return result;
+}
+
+
 
 resultVect *
 operate_vector_1_svc(operationVector arg1,  struct svc_req *rqstp)
 {
 	static resultVect  result;
 
-	result.vec[0] = 1;
+	
 
 	return &result;
 }
