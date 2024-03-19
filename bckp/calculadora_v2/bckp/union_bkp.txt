@@ -1,0 +1,16 @@
+union operation_res switch (int errnum) 
+{
+  case 0:
+    float result;  /* sin error: resultado de la operación*/
+  default:
+    void;          /* con error: nada                   */
+};
+
+
+union vec_operation_res switch (int errnum) 
+{
+  case 0:
+    float result<MAX>;  
+  default:
+    void;                
+};
