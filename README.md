@@ -3,6 +3,18 @@
 
 # PRÁCTICA 2: Llamada a procedimiento remoto (RPC)
 
+Escriba un programa distribuido, utilizando rpcgen, que realice las operaciones aritméticas suma,
+resta, multiplicación o división, según las siguientes especificaciones:
+> El programa cliente será el encargado de llamar a la operación correspondiente en el
+servidor. Este último sólo realizará la evaluación de la expresión y devolverá el resultado.
+> El cliente se podrá ejecutar utilizando una de estas alternativas:
+> Filtrando la línea de orden introducida por el usuario, que podrá tener el siguiente
+formato:
+>> <programa> <maquina> <entero> <operador> <entero>
+>>> donde <operador> puede ser + | - | x | /.
+>> Seleccionando la operación a realizar mediante un menú interactivo e introduciendo los
+operandos a través de la entrada estándar.
+
 # Primera Aproximación
 
 En la primera versión del programa, la calculadora solo realizará
