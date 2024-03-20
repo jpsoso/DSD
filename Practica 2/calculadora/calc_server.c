@@ -21,8 +21,8 @@ operate_1_svc(operation arg1,  struct svc_req *rqstp)
 		result.resultado = arg1.operator1 - arg1.operator2;
 		break;
 
-	case '*' || 'x':
-		result.resultado = ((double)arg1.operator1) * ((double)arg1.operator2);
+	case '*':
+		result.resultado = arg1.operator1 * arg1.operator2;
 		break;
 
 	case '/':
@@ -82,10 +82,14 @@ Result resta(operationVector operation)
 Result prodEscalar(operationVector operation)
 {
 	Result result;
-	for (int i = 0; i < 3; ++i)
+/* 	for (int i = 0; i < 3; ++i)
 	{
-		result.vec[i] = ((double)operation.vec1[0]) * ((double)operation.vec2[i]);
-	}
+		result.vec[i] = operation.vec1[0] * operation.vec2[i];
+	} */
+	result.vec[0] = operation.vec1[0] * operation.vec2[0];
+	result.vec[1] = operation.vec1[0] * operation.vec2[1];
+	result.vec[2] = operation.vec1[0] * operation.vec2[2];
+
 	return result;
 }
 
@@ -113,7 +117,7 @@ operate_vector_1_svc(operationVector arg1,  struct svc_req *rqstp)
 		result = resta(arg1);
 		break;
 
-	case '·':
+	case 'p':
 		result = prodEscalar(arg1);
 		break;
 	
