@@ -16,13 +16,13 @@
 #define SIG_PF void(*)(int)
 #endif
 
-static float *
+static Result *
 _operate_1 (operation  *argp, struct svc_req *rqstp)
 {
 	return (operate_1_svc(*argp, rqstp));
 }
 
-static resultVect *
+static Result *
 _operate_vector_1 (operationVector  *argp, struct svc_req *rqstp)
 {
 	return (operate_vector_1_svc(*argp, rqstp));
@@ -46,13 +46,13 @@ calculator_1(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	case OPERATE:
 		_xdr_argument = (xdrproc_t) xdr_operation;
-		_xdr_result = (xdrproc_t) xdr_float;
+		_xdr_result = (xdrproc_t) xdr_Result;
 		local = (char *(*)(char *, struct svc_req *)) _operate_1;
 		break;
 
 	case OPERATE_VECTOR:
 		_xdr_argument = (xdrproc_t) xdr_operationVector;
-		_xdr_result = (xdrproc_t) xdr_resultVect;
+		_xdr_result = (xdrproc_t) xdr_Result;
 		local = (char *(*)(char *, struct svc_req *)) _operate_vector_1;
 		break;
 
@@ -81,15 +81,15 @@ main (int argc, char **argv)
 {
 	register SVCXPRT *transp;
 
-	pmap_unset (CALCULATOR, VEC_OPERATION);
+	pmap_unset (CALCULATOR, OPERATION);
 
 	transp = svcudp_create(RPC_ANYSOCK);
 	if (transp == NULL) {
 		fprintf (stderr, "%s", "cannot create udp service.");
 		exit(1);
 	}
-	if (!svc_register(transp, CALCULATOR, VEC_OPERATION, calculator_1, IPPROTO_UDP)) {
-		fprintf (stderr, "%s", "unable to register (CALCULATOR, VEC_OPERATION, udp).");
+	if (!svc_register(transp, CALCULATOR, OPERATION, calculator_1, IPPROTO_UDP)) {
+		fprintf (stderr, "%s", "unable to register (CALCULATOR, OPERATION, udp).");
 		exit(1);
 	}
 
@@ -98,8 +98,8 @@ main (int argc, char **argv)
 		fprintf (stderr, "%s", "cannot create tcp service.");
 		exit(1);
 	}
-	if (!svc_register(transp, CALCULATOR, VEC_OPERATION, calculator_1, IPPROTO_TCP)) {
-		fprintf (stderr, "%s", "unable to register (CALCULATOR, VEC_OPERATION, tcp).");
+	if (!svc_register(transp, CALCULATOR, OPERATION, calculator_1, IPPROTO_TCP)) {
+		fprintf (stderr, "%s", "unable to register (CALCULATOR, OPERATION, tcp).");
 		exit(1);
 	}
 

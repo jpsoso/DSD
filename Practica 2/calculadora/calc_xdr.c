@@ -10,9 +10,9 @@ xdr_operation (XDR *xdrs, operation *objp)
 {
 	register int32_t *buf;
 
-	 if (!xdr_float (xdrs, &objp->operator1))
+	 if (!xdr_double (xdrs, &objp->operator1))
 		 return FALSE;
-	 if (!xdr_float (xdrs, &objp->operator2))
+	 if (!xdr_double (xdrs, &objp->operator2))
 		 return FALSE;
 	 if (!xdr_char (xdrs, &objp->operator))
 		 return FALSE;
@@ -26,10 +26,10 @@ xdr_operationVector (XDR *xdrs, operationVector *objp)
 
 	int i;
 	 if (!xdr_vector (xdrs, (char *)objp->vec1, 3,
-		sizeof (float), (xdrproc_t) xdr_float))
+		sizeof (double), (xdrproc_t) xdr_double))
 		 return FALSE;
 	 if (!xdr_vector (xdrs, (char *)objp->vec2, 3,
-		sizeof (float), (xdrproc_t) xdr_float))
+		sizeof (double), (xdrproc_t) xdr_double))
 		 return FALSE;
 	 if (!xdr_char (xdrs, &objp->operator))
 		 return FALSE;
@@ -37,13 +37,15 @@ xdr_operationVector (XDR *xdrs, operationVector *objp)
 }
 
 bool_t
-xdr_resultVect (XDR *xdrs, resultVect *objp)
+xdr_Result (XDR *xdrs, Result *objp)
 {
 	register int32_t *buf;
 
 	int i;
 	 if (!xdr_vector (xdrs, (char *)objp->vec, 3,
-		sizeof (float), (xdrproc_t) xdr_float))
+		sizeof (double), (xdrproc_t) xdr_double))
+		 return FALSE;
+	 if (!xdr_double (xdrs, &objp->resultado))
 		 return FALSE;
 	return TRUE;
 }
@@ -57,7 +59,7 @@ xdr_operation_res (XDR *xdrs, operation_res *objp)
 		 return FALSE;
 	switch (objp->errnum) {
 	case 0:
-		 if (!xdr_resultVect (xdrs, &objp->operation_res_u.result))
+		 if (!xdr_Result (xdrs, &objp->operation_res_u.result))
 			 return FALSE;
 		break;
 	default:

@@ -33,14 +33,6 @@ struct resultVect {
 };
 typedef struct resultVect resultVect;
 
-struct operation_res {
-	int errnum;
-	union {
-		float result;
-	} operation_res_u;
-};
-typedef struct operation_res operation_res;
-
 #define CALCULATOR 0x20000001
 #define VEC_OPERATION 1
 
@@ -69,13 +61,11 @@ extern int calculator_1_freeresult ();
 extern  bool_t xdr_operation (XDR *, operation*);
 extern  bool_t xdr_operationVector (XDR *, operationVector*);
 extern  bool_t xdr_resultVect (XDR *, resultVect*);
-extern  bool_t xdr_operation_res (XDR *, operation_res*);
 
 #else /* K&R C */
 extern bool_t xdr_operation ();
 extern bool_t xdr_operationVector ();
 extern bool_t xdr_resultVect ();
-extern bool_t xdr_operation_res ();
 
 #endif /* K&R C */
 

@@ -57,7 +57,7 @@ xdr_operation_res (XDR *xdrs, operation_res *objp)
 		 return FALSE;
 	switch (objp->errnum) {
 	case 0:
-		 if (!xdr_resultVect (xdrs, &objp->operation_res_u.result))
+		 if (!xdr_float (xdrs, &objp->operation_res_u.result))
 			 return FALSE;
 		break;
 	default:

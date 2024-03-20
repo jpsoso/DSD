@@ -11,7 +11,7 @@
 float *
 operate_1_svc(operation arg1,  struct svc_req *rqstp)
 {
-	static float  result = 0;
+	static float result = 0;
 
 	switch (arg1.operator)
 	{

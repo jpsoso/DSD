@@ -48,6 +48,9 @@ void printSimpleOperation(struct operation Operation)
 		case 'l':
 			printf("[ln(%f)]", Operation.operator2);
 			break;
+		
+		case 'q':
+			printf("[sqrt(%f)]", Operation.operator2);
 						
 		default:
 			break;
@@ -57,14 +60,9 @@ void printSimpleOperation(struct operation Operation)
 
 void printVectorialOperation (struct operationVector Operator)
 {
-	if (Operator.operator == '·')
+	if (!strcmp(&Operator.operator,"·"))
 	{
-		printf("[");
-		for (int i = 0; i < 3; ++i)
-		{
-			printf("%f ", Operator.vec1[i]);
-		}
-		printf("] · [");
+		printf("%f · [", Operator.vec1[0]);
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -96,11 +94,13 @@ bool correctOperator(struct operation Operation)
 	if (!strcmp(&Operation.operator, "+") ||
 		!strcmp(&Operation.operator, "-") ||
 		!strcmp(&Operation.operator, "*") ||
+		!strcmp(&Operation.operator, "/") ||
 		!strcmp(&Operation.operator, "x") ||
 		!strcmp(&Operation.operator, "^") ||
 		!strcmp(&Operation.operator, "s") ||
 		!strcmp(&Operation.operator, "c") ||
 		!strcmp(&Operation.operator, "t") ||
+		!strcmp(&Operation.operator, "q") ||
 		!strcmp(&Operation.operator, "l"))
 	{
 		toReturn = true;
@@ -140,25 +140,48 @@ struct operation interactiveLoadSimpleOperation()
 
 	do
 	{
-		printf("*---- CALCULADORA ----*\nIntroduzca el operando de la izquierda -> ");
-		scanf("%f", &Operation.operator1);
-		printf("\n¿Qué operación desea realizar?\nOperaciones disponibles \n[+ - * /] [sen, s] [cos, c] [tan, t] [ln l]\n-> ");
+		printf("\n¿Qué operación desea realizar?\nOperaciones disponibles \n[+ - * / ] [eleva ^] [sqrt q] [sen, s] [cos, c] [tan, t] [ln l]\n-> ");
 		scanf("%s", &Operation.operator);
-		printf("\nIntroduzca el operando de la derecha -> ");
-		scanf("%f", &Operation.operator2);
-		printf("\nSu operación: ");
-		printSimpleOperation(Operation);
-		if (Operation.operator2 != 0 && correctOperator(Operation))
+
+		if (correctOperator(Operation)) 
 		{
-			printf("\n¿Es esta la operación que desea realizar? [Y/n] ");
-			scanf("%s", &answer);
-			if (!strcmp(&answer, "Y") || !strcmp(&answer, "y"))
+			if (!strcmp(&Operation.operator, "s") ||
+				!strcmp(&Operation.operator, "c") ||
+				!strcmp(&Operation.operator, "t") ||
+				!strcmp(&Operation.operator, "q") ||
+				!strcmp(&Operation.operator, "l"))
+				{
+					printf("\nIntroduzca el operando -> ");
+					scanf("%lf", &Operation.operator2);
+				} 
+				else
+				{
+					printf("Introduzca el operando de la izquierda -> ");
+					scanf("%lf", &Operation.operator1);
+
+					printf("\nIntroduzca el operando de la derecha -> ");
+					scanf("%lf", &Operation.operator2);
+				}
+			
+				printf("\nSu operación: ");
+				printSimpleOperation(Operation);
+
+			if (!(Operation.operator == '/' && Operation.operator2 == 0))
 			{
-				ok = true;
+				printf("\n¿Es ésta la operación que desea realizar? [Y/n] ");
+				scanf("%s", &answer);
+				if (!strcmp(&answer, "Y") || !strcmp(&answer, "y"))
+				{
+					ok = true;
+				}
+				else
+				{
+					ok = false;
+				}
 			}
 			else
 			{
-				ok = false;
+				printf("\nError: Operación no válida\n\n");
 			}
 		}
 		else
@@ -179,20 +202,20 @@ struct operationVector interactiveLoadVectorialOperation()
 	do
 	{
 		printf("\n¿Qué operación desea realizar?\nOperaciones disponibles: [+ - · x] -> ");
-		scanf("%f", &Operation.operator);
+		scanf("%s", &Operation.operator);
 
 		if (correctVectorialOperator(Operation))
 		{
-			if (Operation.operator == '·')
+			if (!strcmp(&Operation.operator, "·"))
 			{
-				printf("Introduzca el escalar ->\n");
-				scanf("%f", Operation.vec1[0]);
+				printf("Introduzca el escalar -> ");
+				scanf("%lf", &Operation.vec1[0]);
 
 				printf("Introduzca el vector\n");
 				for (int i = 0; i < 3; ++i)
 				{
 					printf("vector2[%i]: ", i);
-					scanf("%f", Operation.vec2[i]);
+					scanf("%ld", &Operation.vec2[i]);
 				}
 			}
 			else
@@ -201,7 +224,7 @@ struct operationVector interactiveLoadVectorialOperation()
 				for (int i = 0; i < 3; ++i)
 				{
 					printf("vector1[%i]: ", i);
-					scanf("%f", Operation.vec1[i]);
+					scanf("%lf", &Operation.vec1[i]);
 
 				}
 
@@ -209,13 +232,13 @@ struct operationVector interactiveLoadVectorialOperation()
 				for (int i = 0; i < 3; ++i)
 				{
 					printf("vector2[%i]: ", i);
-					scanf("%f", Operation.vec2[i]);
+					scanf("%lf", &Operation.vec2[i]);
 
 				}				
 			}
 			printf("\nSu operación: ");
 			printVectorialOperation(Operation);
-			printf("\n¿Es esta la operación que desea realizar? [Y/n] ");
+			printf("\n¿Es ésta la operación que desea realizar? [Y/n] ");
 			scanf("%s", &answer);
 			if (!strcmp(&answer, "Y") || !strcmp(&answer, "y"))
 			{
@@ -228,90 +251,73 @@ struct operationVector interactiveLoadVectorialOperation()
 		}
 		else
 		{
-			printf("Operación inválida");
+			printf("Operación no válida");
 		}
 	} while (!ok);
-
 	return Operation;
 }
 
-void calculator_1(char *host)
+void
+calculator_1(char *host)
 {
 	CLIENT *clnt;
-	float *result_1;
+	Result  *result_1;
 	operation operate_1_arg1;
-	resultVect *result_2;
+	Result  *result_2;
 	operationVector operate_vector_1_arg1;
 
-#ifndef DEBUG
-	clnt = clnt_create(host, CALCULATOR, VEC_OPERATION, "udp");
-	if (clnt == NULL)
-	{
-		clnt_pcreateerror(host);
-		exit(1);
+#ifndef	DEBUG
+	clnt = clnt_create (host, CALCULATOR, OPERATION, "udp");
+	if (clnt == NULL) {
+		clnt_pcreateerror (host);
+		exit (1);
 	}
-#endif /* DEBUG */
-	bool exit = false;
+#endif	/* DEBUG */
 	int option = 0;
-	do
+	printMainMenu();
+	scanf("%i", &option);
+
+	if (option == 1)
 	{
-		printMainMenu();
-		scanf("%i", &option);
-
-		if (option == 1) // Operación simple
-		{
-			operate_1_arg1 = interactiveLoadSimpleOperation();
-			//printf("%f %f %c ", operate_1_arg1.operator1, operate_1_arg1.operator2, operate_1_arg1.operator);
-
-			result_1 = operate_1(operate_1_arg1, clnt);
-			if (result_1 == (float *)NULL)
-			{
-				clnt_perror(clnt, "call failed");
-			}
-
-			printf("Resultado: %f\n\n", result_1); // Impresión resultado
+		operate_1_arg1 = interactiveLoadSimpleOperation();
+		result_1 = operate_1(operate_1_arg1, clnt);
+		if (result_1 == (Result *) NULL) {
+			clnt_perror (clnt, "call failed");
 		}
-		else if (option == 2) // Operación vectorial
-		{
-			operate_vector_1_arg1 = interactiveLoadVectorialOperation();
-			result_2 = operate_vector_1(operate_vector_1_arg1, clnt);
-			if (result_2 == (resultVect *)NULL)
-			{
-				clnt_perror(clnt, "call failed");
-			}
-
-			if (operate_vector_1_arg1.operator == '·') // Impresión resultado
-			{
-				printf("Resultado: %f\n\n", result_2->vec[0]);
-			}
-			else
-			{
-				printf("Resultado [");
-				for (int i = 0; i < 3; ++i)
-				{
-					printf("%f ", result_2->vec[i]);
-				}
-				printf("]\n\n");
-			}
+		printf("Resultado: %f\n", result_1->resultado);
+	}
+	else if (option == 2)
+	{
+		operate_vector_1_arg1 = interactiveLoadVectorialOperation();
+		result_2 = operate_vector_1(operate_vector_1_arg1, clnt);
+		if (result_2 == (Result *) NULL) {
+			clnt_perror (clnt, "call failed");
 		}
-	} while (option == 1 || option == 2);
+		printf("Resultado: [");
+		for (int i = 0; i < 3; i++)
+		{
+			printf("%f ", result_2->vec[i]);
+		}
+		printf("]\n");
 
+	}
 
-#ifndef DEBUG
-	clnt_destroy(clnt);
-#endif /* DEBUG */
+#ifndef	DEBUG
+	clnt_destroy (clnt);
+#endif	 /* DEBUG */
 }
 
-int main(int argc, char *argv[])
+
+int
+main (int argc, char *argv[])
 {
 	char *host;
 
-	if (argc < 2)
-	{
-		printf("usage: %s server_host\n", argv[0]);
-		exit(1);
+	if (argc < 2) {
+		printf ("usage: %s server_host\n", argv[0]);
+		exit (1);
 	}
 	host = argv[1];
-	calculator_1(host);
-	exit(0);
+	calculator_1 (host);
+exit (0);
 }

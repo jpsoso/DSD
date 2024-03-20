@@ -47,21 +47,3 @@ xdr_resultVect (XDR *xdrs, resultVect *objp)
 		 return FALSE;
 	return TRUE;
 }
-
-bool_t
-xdr_operation_res (XDR *xdrs, operation_res *objp)
-{
-	register int32_t *buf;
-
-	 if (!xdr_int (xdrs, &objp->errnum))
-		 return FALSE;
-	switch (objp->errnum) {
-	case 0:
-		 if (!xdr_resultVect (xdrs, &objp->operation_res_u.result))
-			 return FALSE;
-		break;
-	default:
-		break;
-	}
-	return TRUE;
-}

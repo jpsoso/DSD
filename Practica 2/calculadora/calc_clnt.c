@@ -9,30 +9,30 @@
 /* Default timeout can be changed using clnt_control() */
 static struct timeval TIMEOUT = { 25, 0 };
 
-float *
+Result *
 operate_1(operation arg1,  CLIENT *clnt)
 {
-	static float clnt_res;
+	static Result clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, OPERATE,
 		(xdrproc_t) xdr_operation, (caddr_t) &arg1,
-		(xdrproc_t) xdr_float, (caddr_t) &clnt_res,
+		(xdrproc_t) xdr_Result, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}
 	return (&clnt_res);
 }
 
-resultVect *
+Result *
 operate_vector_1(operationVector arg1,  CLIENT *clnt)
 {
-	static resultVect clnt_res;
+	static Result clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, OPERATE_VECTOR,
 		(xdrproc_t) xdr_operationVector, (caddr_t) &arg1,
-		(xdrproc_t) xdr_resultVect, (caddr_t) &clnt_res,
+		(xdrproc_t) xdr_Result, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}

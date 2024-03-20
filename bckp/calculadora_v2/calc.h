@@ -13,7 +13,6 @@
 extern "C" {
 #endif
 
-#define MAX 3
 
 struct operation {
 	float operator1;
@@ -22,63 +21,61 @@ struct operation {
 };
 typedef struct operation operation;
 
-struct vec_operation {
-	float vec1[MAX];
-	float vec2[MAX];
-	char *operator;
+struct operationVector {
+	float vec1[3];
+	float vec2[3];
+	char operator;
 };
-typedef struct vec_operation vec_operation;
+typedef struct operationVector operationVector;
 
-struct vec_result {
-	float vec[MAX];
+struct resultVect {
+	float vec[3];
 };
-typedef struct vec_result vec_result;
+typedef struct resultVect resultVect;
+
+struct operation_res {
+	int errnum;
+	union {
+		resultVect result;
+	} operation_res_u;
+};
+typedef struct operation_res operation_res;
 
 #define CALCULATOR 0x20000001
-#define SIMPLEOPERATION 1
+#define VEC_OPERATION 1
 
 #if defined(__STDC__) || defined(__cplusplus)
 #define OPERATE 1
 extern  float * operate_1(operation , CLIENT *);
 extern  float * operate_1_svc(operation , struct svc_req *);
+#define OPERATE_VECTOR 2
+extern  resultVect * operate_vector_1(operationVector , CLIENT *);
+extern  resultVect * operate_vector_1_svc(operationVector , struct svc_req *);
 extern int calculator_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
 #define OPERATE 1
 extern  float * operate_1();
 extern  float * operate_1_svc();
+#define OPERATE_VECTOR 2
+extern  resultVect * operate_vector_1();
+extern  resultVect * operate_vector_1_svc();
 extern int calculator_1_freeresult ();
-#endif /* K&R C */
-#define SIMP_VEC_OPERATION 2
-
-#if defined(__STDC__) || defined(__cplusplus)
-extern  float * operate_2(operation , CLIENT *);
-extern  float * operate_2_svc(operation , struct svc_req *);
-#define OPERATE_VECTOR 2
-extern  vec_result * operate_vector_2(vec_operation , CLIENT *);
-extern  vec_result * operate_vector_2_svc(vec_operation , struct svc_req *);
-extern int calculator_2_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
-
-#else /* K&R C */
-extern  float * operate_2();
-extern  float * operate_2_svc();
-#define OPERATE_VECTOR 2
-extern  vec_result * operate_vector_2();
-extern  vec_result * operate_vector_2_svc();
-extern int calculator_2_freeresult ();
 #endif /* K&R C */
 
 /* the xdr functions */
 
 #if defined(__STDC__) || defined(__cplusplus)
 extern  bool_t xdr_operation (XDR *, operation*);
-extern  bool_t xdr_vec_operation (XDR *, vec_operation*);
-extern  bool_t xdr_vec_result (XDR *, vec_result*);
+extern  bool_t xdr_operationVector (XDR *, operationVector*);
+extern  bool_t xdr_resultVect (XDR *, resultVect*);
+extern  bool_t xdr_operation_res (XDR *, operation_res*);
 
 #else /* K&R C */
 extern bool_t xdr_operation ();
-extern bool_t xdr_vec_operation ();
-extern bool_t xdr_vec_result ();
+extern bool_t xdr_operationVector ();
+extern bool_t xdr_resultVect ();
+extern bool_t xdr_operation_res ();
 
 #endif /* K&R C */
 

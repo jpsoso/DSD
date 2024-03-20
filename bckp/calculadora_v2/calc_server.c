@@ -4,70 +4,118 @@
  * as a guideline for developing your own functions.
  */
 
-#include <stdio.h>
 #include "calc.h"
+#include <math.h>
+#include <stdio.h>
 
 float *
 operate_1_svc(operation arg1,  struct svc_req *rqstp)
 {
-	static float  result;
+	static float  result = 0;
 
-	/*
-	 * insert server code here
-	 */
-
-	return &result;
-}
-
-float *
-operate_2_svc(operation arg1,  struct svc_req *rqstp)
-{
-	static float  result;
-
-	/*
-	 * insert server code here
-	 */
-
-	return &result;
-}
-
-vec_result suma(vec_operation op)
-{
-	static vec_result result;
-	for (int i = 0; i < MAX; ++i)
+	switch (arg1.operator)
 	{
-		result.vec[i] = op.vec1[i] + op.vec2[i];
-	}
-	return result;
-	
-}
+	case '+':
+		result = arg1.operator1 + arg1.operator2;
+		break;
 
-vec_result resta(vec_operation op)
-{
-	static vec_result result;
-	for (int i = 0; i < MAX; ++i)
-	{
-		result.vec[i] = op.vec1[i] - op.vec2[i];
-	}
-	return result;
-	
-}
+	case '-':
+		result = arg1.operator1 - arg1.operator2;
+		break;
 
-vec_result *
-operate_vector_2_svc(vec_operation arg1,  struct svc_req *rqstp)
-{
-	static vec_result  result;
+	case '*' || 'x':
+		result = arg1.operator1 * arg1.operator2;
+		break;
+
+	case '/':
+		result = arg1.operator1 / arg1.operator2;
+		break;
+
+	case '^':
+		result = pow(arg1.operator1, arg1.operator2);
+		break;
+
+	case 's':
+		result = sin(arg1.operator2);
+		break;
+
+	case 'c':
+		result = cos(arg1.operator2);
+		break;
+
+	case 't':
+		result = tan(arg1.operator2);
+		break;
+	
+	case 'l':
+		result = log(arg1.operator2);
+		break;
+		
+	default:
+		break;
+	}
 	
     FILE *f;
-	f = fopen("/dev/tty", "w");
+    f = fopen("/dev/tty", "w");
+    if (f == (FILE *)NULL)
+    {
+      result = 0;
+      return (&result);
+    }
 
-    fprintf(f, "%d", arg1.vec1[0]);
+    fprintf(f, "%f\n", result);
     fclose(f);
 
-	result = suma(arg1);
+	return &result;
+}
 
-    fprintf(f, "%d", result.vec[0]);
-    fclose(f);
+resultVect suma(operationVector operation)
+{
+	resultVect result;
+	for (int i = 0; i < 3; ++i)
+	{
+		result.vec[i] = operation.vec1[i] + operation.vec2[i];
+	}
+	return result;
+}
+
+resultVect resta(operationVector operation)
+{
+	resultVect result;
+	for (int i = 0; i < 3; ++i)
+	{
+		result.vec[i] = operation.vec1[i] - operation.vec2[i];
+	}
+	return result;
+}
+
+resultVect prodEscalar(operationVector operation)
+{
+	resultVect result;
+	for (int i = 0; i < 3; ++i)
+	{
+		result.vec[0] += operation.vec1[i] * operation.vec2[i];
+	}
+	return result;
+}
+
+resultVect prodVectorial(operationVector operation)
+{
+	resultVect result;
+	result.vec[0] = operation.vec1[1] * operation.vec2[2] - operation.vec1[2] * operation.vec2[1];
+	result.vec[1] = operation.vec1[2] * operation.vec2[0] - operation.vec1[0] * operation.vec2[2];
+	result.vec[2] = operation.vec1[0] * operation.vec2[1] - operation.vec1[1] * operation.vec2[0];
+	return result;
+}
+
+
+
+resultVect *
+operate_vector_1_svc(operationVector arg1,  struct svc_req *rqstp)
+{
+	static resultVect  result;
+
+	
 
 	return &result;
 }

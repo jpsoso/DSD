@@ -15,51 +15,52 @@ extern "C" {
 
 
 struct operation {
-	float operator1;
-	float operator2;
+	double operator1;
+	double operator2;
 	char operator;
 };
 typedef struct operation operation;
 
 struct operationVector {
-	float vec1[3];
-	float vec2[3];
+	double vec1[3];
+	double vec2[3];
 	char operator;
 };
 typedef struct operationVector operationVector;
 
-struct resultVect {
-	float vec[3];
+struct Result {
+	double vec[3];
+	double resultado;
 };
-typedef struct resultVect resultVect;
+typedef struct Result Result;
 
 struct operation_res {
 	int errnum;
 	union {
-		float result;
+		Result result;
 	} operation_res_u;
 };
 typedef struct operation_res operation_res;
 
 #define CALCULATOR 0x20000001
-#define VEC_OPERATION 1
+#define OPERATION 1
 
 #if defined(__STDC__) || defined(__cplusplus)
 #define OPERATE 1
-extern  float * operate_1(operation , CLIENT *);
-extern  float * operate_1_svc(operation , struct svc_req *);
+extern  Result * operate_1(operation , CLIENT *);
+extern  Result * operate_1_svc(operation , struct svc_req *);
 #define OPERATE_VECTOR 2
-extern  resultVect * operate_vector_1(operationVector , CLIENT *);
-extern  resultVect * operate_vector_1_svc(operationVector , struct svc_req *);
+extern  Result * operate_vector_1(operationVector , CLIENT *);
+extern  Result * operate_vector_1_svc(operationVector , struct svc_req *);
 extern int calculator_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
 #define OPERATE 1
-extern  float * operate_1();
-extern  float * operate_1_svc();
+extern  Result * operate_1();
+extern  Result * operate_1_svc();
 #define OPERATE_VECTOR 2
-extern  resultVect * operate_vector_1();
-extern  resultVect * operate_vector_1_svc();
+extern  Result * operate_vector_1();
+extern  Result * operate_vector_1_svc();
 extern int calculator_1_freeresult ();
 #endif /* K&R C */
 
@@ -68,13 +69,13 @@ extern int calculator_1_freeresult ();
 #if defined(__STDC__) || defined(__cplusplus)
 extern  bool_t xdr_operation (XDR *, operation*);
 extern  bool_t xdr_operationVector (XDR *, operationVector*);
-extern  bool_t xdr_resultVect (XDR *, resultVect*);
+extern  bool_t xdr_Result (XDR *, Result*);
 extern  bool_t xdr_operation_res (XDR *, operation_res*);
 
 #else /* K&R C */
 extern bool_t xdr_operation ();
 extern bool_t xdr_operationVector ();
-extern bool_t xdr_resultVect ();
+extern bool_t xdr_Result ();
 extern bool_t xdr_operation_res ();
 
 #endif /* K&R C */
