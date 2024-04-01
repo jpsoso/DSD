@@ -2,17 +2,23 @@ from calculadora import Calculadora
 
 import math
 
-from calculadora . ttypes import Operations
-from calculadora . ttypes import Operation
+from calculadora . ttypes import *
 
 from thrift import Thrift
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 
-def print_menu():
+def printMainMenu():
+    print("========== CALCULADORA ========== ")
+    print("Seleccione un modo:")
+    print("[ 1 ] Modo operaciones simples    ")
+    print("[ 2 ] Modo operaciones vectoriales")
+    print("[ e ] Salir de la calculadora     ")
+
+def printSimpleOperationMenu():
     print("========== CALCULADORA ==========")
-    print("Operaciones disponibles:")
+    print("Operaciones simples disponibles:")
     print("Suma                        [ + ]")
     print("Resta                       [ - ]")
     print("Multiplicación              [ * ]")
@@ -23,50 +29,34 @@ def print_menu():
     print("Convertir grados a radianes [g2r]")
     print("Convertir radianes a grados [r2g]")
     print("Salir --------------------> [ e ]")
-    print("¿Cuál desea realizar? -> ")
 
-if __name__ == "__main__":
-    transport = TSocket.TSocket("localhost", 9090)
-    transport = TTransport.TBufferedTransport(transport)
-    protocol = TBinaryProtocol.TBinaryProtocol(transport)
-
-    client = Calculadora.Client(protocol)
-
-    transport.open()
-
+def doSimpleOperation():
     operacion = Operation()
-
     option = ""
-
     while(option != "e"):
-        print_menu()
-        option = input()
+        printSimpleOperationMenu()
+        option = input("¿Cuál desea realizar? -> ")
         if option != "e":
             if option == "+" or option == "-" or option == "*" or option == "/":
                 correct = False
                 validInput = False
-                while not correct:
-                    while not validInput:
-                        try:
-                            validInput = True
-                            operacion.member1 = float(input("Introduzca el primer  operando -> "))
-                        except ValueError:
-                            print("Por favor introduzca un número")
-                            validInput = False
-                        
-                    validInput = False
-                    while not validInput:
-                        try:
-                            validInput = True
-                            operacion.member2 = float(input("Introduzca el segundo operando -> "))
-                        except ValueError:
-                            print("Por favor introduzca un número")
-                            validInput = False
-                        
-                    if operacion.member2 == 0 and option == "/" :
-                        print("[ERROR] No se puede dividir por 0")
-                    else:
-                        correct = True
+
+                while not validInput:
+                    try:
+                        validInput = True
+                        operacion.member1 = float(input("Introduzca el primer  operando -> "))
+                    except ValueError:
+                        print("Por favor introduzca un número")
+                        validInput = False
+                    
+                validInput = False
+                while not validInput:
+                    try:
+                        validInput = True
+                        operacion.member2 = float(input("Introduzca el segundo operando -> "))
+                    except ValueError:
+                        print("Por favor introduzca un número")
+                        validInput = False
 
                 match option:
                     case "+":
@@ -78,7 +68,10 @@ if __name__ == "__main__":
                     case "/":
                         operacion.operating = Operations.DIV
                 
-                print(f"{operacion} = {client.calculate(operacion)}")
+                try:
+                    print(f"{operacion} = {client.calculate(operacion)}")
+                except:
+                    print("[ERROR] -  División por 0")
 
             elif option == "sin" or option == "cos" or option == "tan" or option == "g2r" or option == "r2g":
                 validInput = False
@@ -103,18 +96,118 @@ if __name__ == "__main__":
                     case "r2g":
                         operacion.operating = Operations.CONVr_g
 
-                print(f"{operacion} = {client.calculate(operacion)}")
-
+                try:
+                    print(f"{operacion} = {client.calculate(operacion)}")
+                except:
+                    print("[ERROR] -  División por 0")
             else:
                 print("Operación no válida. Por favor, introduzca una operación de entre las disponibles")                   
     
+def printVectorOperationMenu():
+    print("=========== CALCULADORA ============")
+    print("Operaciones vectoriales disponibles:")
+    print("Suma                           [ + ]")
+    print("Resta                          [ - ]")
+    print("Producto Escalar               [ · ]")
+    print("Multiplicar vector por escalar [ * ]")
+    print("Salir -----------------------> [ e ]")
+
+def doVectorOperation():
+    operacion = vector_Operation([], [])
+    option = ""
+    while (option != "e"):
+        printVectorOperationMenu()
+        option = input("¿Cuál desea realizar? -> ")
+        if (option != "e"):
+            if option == "+" or option == "-" or option == "·" or option == "*":
+                if option == "*":
+                    operacion.member1.append(float(input("Introduce el escalar -> ")))
+                    validInput = False
+                    while not validInput:
+                        size = int(input("¿De qué tamaño es el vector? -> "))
+                        if size > 0:
+                            validInput = True
+                        else:
+                            print("Introduzca un tamaño válido")
+                    for i in range(size):
+                        validInput = False
+                        while not validInput:
+                            try:
+                                validInput = True
+                                operacion.member2.append(float(input(f"vector[{i}] -> ")))
+                            except ValueError:
+                                print("Por favor introduzca un número")
+                                validInput = False
+
+                    operacion.operating = Operations.MUL_Esc
+
+                    print(f"{operacion} \n = \n {client.calculateVec(operacion)}")
+                    operacion.member1.clear()
+                    operacion.member2.clear()  
+                                
+                else:
+                    validInput = False
+                    while not validInput:
+                        size = int(input("¿De qué tamaño son los vectores? -> "))
+                        if size > 0:
+                            validInput = True
+                        else:
+                            print("Introduzca un tamaño válido")
+                    for i in range(size):
+                        validInput = False
+                        while not validInput:
+                            try:
+                                validInput = True
+                                operacion.member1.append(float(input(f"vector1[{i}] -> ")))
+                            except ValueError:
+                                print("Por favor introduzca un número")
+                                validInput = False
+                    for i in range(size):
+                        validInput = False
+                        while not validInput:
+                            try:
+                                validInput = True
+                                operacion.member2.append(float(input(f"vector2[{i}] -> ")))
+                            except ValueError:
+                                print("Por favor introduzca un número")
+                                validInput = False
+
+                    match option:
+                        case "+":
+                            operacion.operating = Operations.ADD
+                        case "-":
+                            operacion.operating = Operations.SUB
+                        case "·":
+                            operacion.operating = Operations.P_Esc
+
+                    print(f"{operacion} \n = \n {client.calculateVec(operacion)}")
+                    operacion.member1.clear()
+                    operacion.member2.clear()  
+            else:
+                print("Operación no válida. Por favor, introduzca una operación de entre las disponibles")  
+
+
+if __name__ == "__main__":
+    transport = TSocket.TSocket("localhost", 9090)
+    transport = TTransport.TBufferedTransport(transport)
+    protocol = TBinaryProtocol.TBinaryProtocol(transport)
+
+    client = Calculadora.Client(protocol)
+
+    transport.open()
+
+    option = ""
+    while (option != "e"):
+        printMainMenu()
+        option = option = input("¿Cuál desea realizar? -> ")
+        if (option != "e"):
+            match option:
+                case "1":
+                    doSimpleOperation()
+                case "2":
+                    doVectorOperation()
+
+
     transport.close()
-
-
-"""     operacion.member1 = 180
-    operacion.member2 = 2
-    operacion.operating = Operations.CONVg_r
-
-    print(client.calculate(operacion)) """
 
 

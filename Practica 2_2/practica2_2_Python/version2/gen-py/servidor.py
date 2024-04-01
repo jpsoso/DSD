@@ -24,43 +24,81 @@ class CalculadoraHandler:
     def calculate(self, op):
         match op.operating:
             case Operations.ADD:
-                return op.member1 + op.member2
+                result = op.member1 + op.member2
+                print(f"Calculando suma. Resultado: {result}")
+                return result
             case Operations.SUB:
-                return op.member1 - op.member2
+                result = op.member1 - op.member2
+                print(f"Calculando resta. Resultado: {result}")
+                return result
             case Operations.MUL:
-                return op.member1 * op.member2
+                result = op.member1 * op.member2
+                print(f"Calculando multiplicación. Resultado: {result}")
+                return result
             case Operations.DIV:
-                return op.member1 / op.member2
+                try:
+                    result = op.member1 / op.member2
+                    print(f"Calculando división. Resultado: {result}")
+                    return result
+                except:
+                    print(" [ERROR] - División por 0 ")
             case Operations.COS:
-                return math.cos(math.radians(op.member1))
+                result = math.cos(math.radians(op.member1))
+                print(f"Calculando coseno. Resultado: {result}")
+                return result 
             case Operations.SIN:
-                return math.sin(math.radians(op.member1))
+                result = math.sin(math.radians(op.member1))
+                print(f"Calculando seno. Resultado: {result}")
+                return result
             case Operations.TAN:
-                return math.tan(math.radians(op.member1))
+                result = math.tan(math.radians(op.member1))
+                print(f"Calculando tangente. Resultado: {result}")
+                return result
             case Operations.CONVg_r:
-                return math.radians(op.member1)
+                result = math.radians(op.member1)
+                print(f"Convirtiendo a radianes. Resultado: {result}")
+                return result
             case Operations.CONVr_g:
-                return math.degrees(op.member1)
+                result = math.degrees(op.member1)
+                print(f"Convirtiendo a grados. Resultado: {result}")
+                return result
 
     def calculateVec(self, op):
         result = []
         match op.operating:
             case Operations.ADD:
-                for i in range(len(op.member1)):
-                    result.append(op.member1[i] + op.member2[i])
-                return result
+                if len(op.member1) == len(op.member2) and len(op.member1) > 0:
+                    for i in range(len(op.member1)):
+                        result.append(op.member1[i] + op.member2[i])
+                    print(f"Resultado de la suma de vectores {result}")
+                    return result
+                else:
+                    raise Exception("El tamaño de los vectores debe de ser el mismo, además de no nulo")
             case Operations.SUB:
-                for i in range(len(op.member1)):
-                    result.append(op.member1[i] - op.member2[i])
-                return result
+                if len(op.member1) == len(op.member2) and len(op.member1) > 0:
+                    for i in range(len(op.member1)):
+                        result.append(op.member1[i] - op.member2[i])
+                    print(f"Resultado de la resta de vectores {result}")
+                    return result
+                else:
+                    raise Exception("El tamaño de los vectores debe de ser el mismo, además de no nulo")
             case Operations.P_Esc:
-                for i in range(len(op.member1)):
-                    result[0] += (op.member1[i] * op.member2[i])
-                return result
+                if len(op.member1) == len(op.member2) and len(op.member1) > 0:
+                    for i in range(len(op.member1)):
+                        result.append(0)
+                        result[0] += (op.member1[i] * op.member2[i])
+                    print(f"Resultado del producto escalar {result}")
+                    return result
+                else:
+                    raise Exception("El tamaño de los vectores debe de ser el mismo, además de no nulo")  
             case Operations.MUL_Esc:
-                for i in range(len(op.member1)):
-                    result.append((op.member1[0] * op.member2[i]))
-                return result       
+                if len(op.member2) > 0:
+                    for i in range(len(op.member2)):
+                        result.append((op.member1[0] * op.member2[i]))
+                    print(f"Resultado de multiplicar el escalar {result}")
+                    return result
+                else:
+                    raise Exception("Introduzca un escalar y un vector de tamaño no nulo")     
 
 
 
@@ -74,6 +112,5 @@ if __name__ == "__main__":
 
     server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
 
-    print("iniciando servidor...")
+    print("Iniciando el servidor...")
     server.serve()
-    print("fin")
