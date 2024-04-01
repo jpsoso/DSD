@@ -129,6 +129,30 @@ class Operation(object):
 
     def __ne__(self, other):
         return not (self == other)
+    
+    def __str__(self) -> str:
+        toReturn = ""
+        match self.operating:
+            case Operations.ADD:
+                toReturn = f"{self.member1} + {self.member2}"
+            case Operations.SUB:
+                toReturn = f"{self.member1} - {self.member2}"
+            case Operations.MUL:
+                toReturn = f"{self.member1} * {self.member2}"
+            case Operations.DIV:
+                toReturn = f"{self.member1} / {self.member2}"
+            case Operations.COS:
+                toReturn = f"cos({self.member1})"
+            case Operations.SIN:
+                toReturn = f"sin({self.member1})"
+            case Operations.TAN:
+                toReturn = f"tan({self.member1})"
+            case Operations.CONVg_r:
+                toReturn = f"convGradosARadianes({self.member1})"
+            case Operations.CONVr_g:
+                toReturn = f"convRadianesAGrados({self.member1})" 
+        return toReturn        
+
 all_structs.append(Operation)
 Operation.thrift_spec = (
     None,  # 0

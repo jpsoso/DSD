@@ -10,28 +10,111 @@ from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 
-transport = TSocket.TSocket("localhost", 9090)
-transport = TTransport.TBufferedTransport(transport)
-protocol = TBinaryProtocol.TBinaryProtocol(transport)
+def print_menu():
+    print("========== CALCULADORA ==========")
+    print("Operaciones disponibles:")
+    print("Suma                        [ + ]")
+    print("Resta                       [ - ]")
+    print("Multiplicación              [ * ]")
+    print("División                    [ / ]")
+    print("Seno (grados)               [sin]")
+    print("Coseno (grados)             [cos]")
+    print("Tangente                    [tan]")
+    print("Convertir grados a radianes [g2r]")
+    print("Convertir radianes a grados [r2g]")
+    print("Salir --------------------> [ e ]")
+    print("¿Cuál desea realizar? -> ")
 
-client = Calculadora.Client(protocol)
+if __name__ == "__main__":
+    transport = TSocket.TSocket("localhost", 9090)
+    transport = TTransport.TBufferedTransport(transport)
+    protocol = TBinaryProtocol.TBinaryProtocol(transport)
 
-transport.open()
+    client = Calculadora.Client(protocol)
 
-""" print("hacemos ping al server")
-client.ping()
+    transport.open()
 
-resultado = client.suma(1, 1)
-print("1 + 1 = " + str(resultado))
-resultado = client.resta(1, 1)
-print("1 - 1 = " + str(resultado)) """
+    operacion = Operation()
 
-operacion = Operation()
+    option = ""
 
-operacion.member1 = 180
-operacion.member2 = 2
-operacion.operating = Operations.CONVg_r
+    while(option != "e"):
+        print_menu()
+        option = input()
+        if option != "e":
+            if option == "+" or option == "-" or option == "*" or option == "/":
+                correct = False
+                validInput = False
+                while not correct:
+                    while not validInput:
+                        try:
+                            validInput = True
+                            operacion.member1 = float(input("Introduzca el primer  operando -> "))
+                        except ValueError:
+                            print("Por favor introduzca un número")
+                            validInput = False
+                        
+                    validInput = False
+                    while not validInput:
+                        try:
+                            validInput = True
+                            operacion.member2 = float(input("Introduzca el segundo operando -> "))
+                        except ValueError:
+                            print("Por favor introduzca un número")
+                            validInput = False
+                        
+                    if operacion.member2 == 0 and option == "/" :
+                        print("[ERROR] No se puede dividir por 0")
+                    else:
+                        correct = True
 
-print(client.calculate(operacion))
+                match option:
+                    case "+":
+                        operacion.operating = Operations.ADD
+                    case "-":
+                        operacion.operating = Operations.SUB
+                    case "*":
+                        operacion.operating = Operations.MUL
+                    case "/":
+                        operacion.operating = Operations.DIV
+                
+                print(f"{operacion} = {client.calculate(operacion)}")
 
-transport.close()
+            elif option == "sin" or option == "cos" or option == "tan" or option == "g2r" or option == "r2g":
+                validInput = False
+                while not validInput:
+                    try:
+                        validInput = True
+                        operacion.member1 = float(input("Introduzca el operando -> "))
+                    except ValueError:
+                        print("Por favor introduzca un número")
+                        validInput = False
+                    
+
+                match option:
+                    case "sin":
+                        operacion.operating = Operations.SIN
+                    case "cos":
+                        operacion.operating = Operations.COS
+                    case "tan":
+                        operacion.operating = Operations.TAN
+                    case "g2r":
+                        operacion.operating = Operations.CONVg_r
+                    case "r2g":
+                        operacion.operating = Operations.CONVr_g
+
+                print(f"{operacion} = {client.calculate(operacion)}")
+
+            else:
+                print("Operación no válida. Por favor, introduzca una operación de entre las disponibles")                   
+    
+    transport.close()
+
+
+"""     operacion.member1 = 180
+    operacion.member2 = 2
+    operacion.operating = Operations.CONVg_r
+
+    print(client.calculate(operacion)) """
+
+
