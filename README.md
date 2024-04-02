@@ -1,115 +1,95 @@
-# DSD
- Prácticas de Desarrollo de Sistemas Distribuidos Curso 23/24
-
-# PRÁCTICA 2: Llamada a procedimiento remoto (RPC)
-
-Escriba un programa distribuido, utilizando rpcgen, que realice las operaciones aritméticas suma,
-resta, multiplicación o división, según las siguientes especificaciones:
-> El programa cliente será el encargado de llamar a la operación correspondiente en el
-servidor. Este último sólo realizará la evaluación de la expresión y devolverá el resultado.
-> El cliente se podrá ejecutar utilizando una de estas alternativas:
-> Filtrando la línea de orden introducida por el usuario, que podrá tener el siguiente
-formato:
->> <programa> <maquina> <entero> <operador> <entero>
->>> donde <operador> puede ser + | - | x | /.
->> Seleccionando la operación a realizar mediante un menú interactivo e introduciendo los
-operandos a través de la entrada estándar.
+---
+author:
+- Jesús Pereira Sánchez
+title: "PRÁCTICA 2_2: Apache Thrift"
+---
 
 # Primera Aproximación
 
 En la primera versión del programa, la calculadora solo realizará
-operaciones simples como lo son suma, resta, multiplicación y división
-con números en coma flotante. La calculadora además, evitará operaciones
-peligrosas como dividir por 0 y otro tipo de operaciones que no conozca.
+operaciones simples como suma, resta, multiplicación, división, algunas
+operaciones trigonométricas (seno, coseno, tangente) en grados y
+conversión de grados a radianes y viceversa.
 
 ## Representación del problema
 
-Para representar el problema, nos valdremos de una estructura sencilla.
-Abstraemos el concepto de operación, el cual se compone del operando de
-la izquierda, el operando de la derecha y el operador. Sabiendo esto,
-tenemos el siguiente struct:
+La representación del problema será similar que en la práctica 2:
 
 ``` {frame="single"}
-struct operation 
+struct Operation 
 {
-  float operator1;
-  float operator2;
-  char operator;
+  double member1;
+  double member2;
+  Operations operating;
 };
 ```
 
-**struct operator** crucial para la calculadora.
+**struct Operation** crucial para la calculadora.
 
-## Archivo calc.x
+Para añadir un poco más de complejidad al problema, las operaciones
+serán parte de un enumerado.
 
-Gracias a este archivo generamos las plantillas, por lo que es crucial
-como lo realicemos. En este archivo vamos a declarar nuestros tipos de
-datos (**operation** y la unión para la devolución del resultado en caso
-de error o no) y el procedimiento del servidor.
+## Archivo calculadora.thrift
+
+Gracias a este archivo generamos la comunicación entre el servidor y
+cliente, así como los datos y servicios que formarán parte del problema.
+Definimos el enumerado de las operaciones disponibles, la estructura de
+operación y los servicios del servidor:
 
 ``` {frame="single"}
-/* calc.x */
-struct operation 
+/* calculadora.thrift */
+enum Operations
 {
-  float operator1;
-  float operator2;
-  char operator;
-};
+   ADD = 0;
+   SUB = 1;
+   MUL = 2;
+   DIV = 3;
+   SIN = 4;
+   COS = 5;
+   TAN = 6;
+   CONVg_r = 7,
+   CONVr_g = 8
+}
 
-union operation_res switch (int errnum) 
+struct Operation
 {
-  case 0:
-    float result;  /* sin error: resultado */
-  default:
-    void;          /* con error: nada      */
-};
+   1: optional double member1;
+   2: optional double member2;
+   3: optional Operations operating
+}
 
-program CALCULATOR 
+service Calculadora
 {
-  version SIMPLEOPERATION
-  {
-    float OPERATE (operation) = 1;
-  } = 1;
-} = 0x20000001;
+   double calculate(1:Operation op)
+}
 ```
 
 ## Servidor
 
 Tal y como hemos definido los tipos de datos que se van a pasar entre el
-servidor y el cliente, la tarea del servidor es sencilla: **Identifica
-la operación, calcula el resultado y lo devuelve al cliente que lo
-solicitó**. Por ello, tendrá un código simple:
+servidor y el cliente, la tarea del handler del servidor es sencilla:
+**Identifica la operación, calcula el resultado y lo devuelve al cliente
+que lo solicitó**. Por ello, tendrá un código simple:
 
-``` {frame="single"}
-float *operate_1_svc(operation arg1,  struct svc_req *rqstp)
-{
-    static float  result;
+::: mintedbox
+python class CalculadoraHandler: def \_\_init\_\_(self): self.log =
 
-    switch (arg1.operator)
-    {
-    case '+':
-        result = arg1.operator1 + arg1.operator2;
-        break;
+def calculate(self, op): match op.operating: case Operations.ADD: return
+op.member1 + op.member2 case Operations.SUB: return op.member1 -
+op.member2 case Operations.MUL: return op.member1 \* op.member2 case
+Operations.DIV: return op.member1 / op.member2 case Operations.COS:
+return math.cos(math.radians(op.member1)) case Operations.SIN: return
+math.sin(math.radians(op.member1)) case Operations.TAN: return
+math.tan(math.radians(op.member1)) case Operations.CONVg_r: return
+math.radians(op.member1) case Operations.CONVr_g: return
+math.degrees(op.member1)
+:::
 
-    case '-':
-        result = arg1.operator1 - arg1.operator2;
-        break;
+Para las operaciones trigonométricas y las de conversión de grados y
+radianes usamos el módulo **math** de Python (*import math*).
 
-    case '*' || 'x':
-        result = arg1.operator1 * arg1.operator2;
-        break;
-
-    case '/':
-        result = arg1.operator1 / arg1.operator2;
-        break;
-
-    default:
-        break;
-    }
-
-    return &result;
-}
-```
+Por otro lado, la comunicación. Usaremos el código de servidor
+proporcionado como ejemplo para la práctica.
 
 ## Cliente
 
@@ -120,64 +100,74 @@ definidos, enviarlos, y mostrar lo que recibimos.
 
 ### Cargamos los datos
 
-Lo haremos de forma interactiva desde la terminal. Preguntamos los
-operandos y la operación que queremos realizar. Es en este proceso en el
-que filtramos aquellas operaciones que no se puedan hacer, como la
-división por 0 y otro tipo de operaciones no disponibles para la
-calculadora. He elegido hacer el filtrado de operaciones en el cliente y
-no en el servidor porque es una labor del cliente, si no
-sobrecargaríamos el servidor. El código del cliente sería el siguiente:
+Al igual que en la práctica anterior, lo haremos de forma interactiva
+desde la terminal. Preguntamos al usuario el operando, y los miembros de
+la operación. Aqui filtramos la entrada no válida de algunos valores no
+válidos como letras o un 0 como segundo operando de la división
+(temporalmente hasta añadir el uso de excepciones). El código del
+cliente sería el siguiente:
 
-``` {frame="single"}
-void calculator_1(char *host)
-{
-    CLIENT *clnt;
-    float *result_1;
-    operation operate_1_arg1;
+::: mintedbox
+python if \_\_name\_\_ == \"\_\_main\_\_\": transport =
+TSocket.TSocket(\"localhost\", 9090) transport =
+TTransport.TBufferedTransport(transport) protocol =
+TBinaryProtocol.TBinaryProtocol(transport)
 
-    // Ponemos los argumentos de la operación
-    operate_1_arg1 = interactiveLoadSimpleOperation();
+client = Calculadora.Client(protocol)
 
-#ifndef DEBUG
-    clnt = clnt_create(host, CALCULATOR, SIMPLEOPERATION, "udp");
-    if (clnt == NULL)
-    {
-        clnt_pcreateerror(host);
-        exit(1);
-    }
-#endif /* DEBUG */
+transport.open()
 
-    result_1 = operate_1(operate_1_arg1, clnt);
-    if (result_1 == (float *)NULL)
-    {
-        clnt_perror(clnt, "call failed");
-    }
+operacion = Operation()
 
-    // Imprimimos por pantalla el resultado
-    printf("El resultado es: %f\n", *result_1);
+option = \"\"
 
-#ifndef DEBUG
-    clnt_destroy(clnt);
-#endif /* DEBUG */
-}
-```
+while(option != \"e\"): print_menu() option = input() if option !=
+\"e\": if option == \"+\" or option == \"-\" or option == \"\*\" or
+option == \"/\": correct = False validInput = False while not correct:
+while not validInput: try: validInput = True operacion.member1 =
+float(input(\"Introduzca el primer operando -\> \")) except ValueError:
+print(\"Por favor introduzca un número\") validInput = False
 
-La función interactiveLoadSimpleOperation() carga en la estructura de
-datos **operation** la operación que quiera hacer el usuario. Pide los
-datos de forma interactiva a través de la consola. Se vale de algunos
-métodos de filtrado para operaciones válidas. También de otros méotodos
-para imprimir por pantalla las operaciones de forma más rápida. Desde el
-main se llama a esta función, y ejecutando el servidor y el cliente (por
-este orden) en las terminales, podremos realizar operaciones.
+validInput = False while not validInput: try: validInput = True
+operacion.member2 = float(input(\"Introduzca el segundo operando -\>
+\")) except ValueError: print(\"Por favor introduzca un número\")
+validInput = False
+
+if operacion.member2 == 0 and option == \"/\" : print(\"\[ERROR\] No se
+puede dividir por 0\") else: correct = True
+
+match option: case \"+\": operacion.operating = Operations.ADD case
+\"-\": operacion.operating = Operations.SUB case \"\*\":
+operacion.operating = Operations.MUL case \"/\": operacion.operating =
+Operations.DIV
+
+print(f\"operacion = client.calculate(operacion)\")
+
+elif option == \"sin\" or option == \"cos\" or option == \"tan\" or
+option == \"g2r\" or option == \"r2g\": validInput = False while not
+validInput: try: validInput = True operacion.member1 =
+float(input(\"Introduzca el operando -\> \")) except ValueError:
+print(\"Por favor introduzca un número\") validInput = False
+
+match option: case \"sin\": operacion.operating = Operations.SIN case
+\"cos\": operacion.operating = Operations.COS case \"tan\":
+operacion.operating = Operations.TAN case \"g2r\": operacion.operating =
+Operations.CONVg_r case \"r2g\": operacion.operating =
+Operations.CONVr_g
+
+print(f\"operacion = client.calculate(operacion)\")
+
+else: print(\"Operación no válida. Por favor, introduzca una operación
+de entre las disponibles\")
+
+transport.close()
+:::
+
+Es en la línea 80 cuando mandamos al servidor la operación a realizar.
 
 # Solución Final
 
 En esta versión se han actualizado varios apartados:
-
--   **Nuevas operaciones**: Actualizado el repertorio de operaciones
-    simples de la primera aproximación. Usando la biblioteca math.h se
-    ha implementado algunas operaciones trigonométricas (**seno coseno y
-    tangente**, raices cuadradas, potencias y logaritmos.
 
 -   **Nuevas Operaciones Vectoriales**: Se ha añadido la opción de
     trabajar con vectores. Algunas de las operaciones que incluye esta
@@ -186,68 +176,63 @@ En esta versión se han actualizado varios apartados:
     operaciones se hacen con vectores de 3 dimensiones, que son los
     vectores que normalmente se usan para un espacio Cartesiano R3
 
-## Archivo calc.x
+-   **Control de excepciones**: Aprovechando el control de excepciones
+    de Python, ahora protegemos al servidor ante cualquier operación que
+    pueda mandar el cliente (divisiones por 0 y operaciones con vectores
+    nulos). Además, en el cliente controlamos la conexión al servidor y
+    la ejecución de este mismo con una excepción.
 
-Hemos actualizado el archivo para poder meter el nuevo procedimiento de
-cálculo de vectores:
+## Archivo calculadora.thrift
+
+Hemos actualizado el archivo para poder meter las excepciones, las
+operaciones con vectores (en el enumerado y el tipo de dato de operación
+con vector) y el nuevo servicio de cálculo de vectores:
 
 ``` {frame="single"}
-/*
- * calc.x : Protocolo de cálculo de operaciones con operandos simples y complejos 
- */
-
-#define MAX 3
-
-struct operation 
+enum Operations
 {
-  double operator1;
-  double operator2;
-  char operator;
-};
+   ADD = 0;
+   SUB = 1;
+   MUL = 2;
+   DIV = 3;
+   SIN = 4;
+   COS = 5;
+   TAN = 6;
+   CONVg_r = 7,
+   CONVr_g = 8,
+   P_Esc = 9,
+   MUL_Esc = 10
+}
 
-struct operationVector
+struct Operation
 {
-    double vec1[MAX];
-    double vec2[MAX];
-    char operator;
-};
+   1: optional double member1;
+   2: optional double member2;
+   3: optional Operations operating
+}
 
-struct Result
+struct vector_Operation
 {
-    double vec[MAX];
-    double resultado;
-};
+   1: optional list<double> member1;
+   2: optional list<double> member2;
+   3: optional Operations operating
+}
 
-union operation_res switch (int errnum) 
-{
-  case 0:
-    Result result;  /* sin error: resultado de la operacion*/
-  default:
-    void;          /* con error: nada                   */
-};
+exception InvalidOperation {
+  1: string error
+}
 
-program CALCULATOR 
+service Calculadora
 {
-  version OPERATION
-  {
-    Result OPERATE (operation) = 1;
-    Result OPERATE_VECTOR (operationVector) = 2;
-  } = 1;
-} = 0x20000001;
+   double calculate(1:Operation op) throws (1:InvalidOperation e),
+   list<double> calculateVec(1:vector_Operation op) throws (1:InvalidOperation e)
+}
 ```
 
-Definimos una operación vectorial (**operationVector**) valiéndonos de
-dos vectores que actuarán como los operandos, y carácter para el
-operador. El tamaño de estos vectores es de 3. Por otro lado, definimos
-el tipo **result**, en el que tenemos dos campos: **resultado escalar**
-y **resultado vectorial**. Usamos este tipo resultado para operaciones
-con vectores como normales. Actualizamos la unión de resultado para
-discriminar entre llamadas con y sin éxito. Por último tenemos la
-definición del servicio, en la que actualizamos las cabeceras de los
-procedimientos y de las versiones.
-
-\
-Generamos las plantillas usando rpcgen.
+En orden, las operaciones disponibles de la calculadora, la estructura
+de operación simple, la estructura de operación vectorial, la excepción
+de operación no válida que devuelve el servidor y la definición del
+servicio con sus respectivos procedimientos
 
 ## Servidor
 
@@ -257,257 +242,224 @@ Este servidor es parecido al anterior. Tenemos dos procedimientos:
 
 -   **Operaciones vectoriales**
 
-Lo cual se traduce a dos funciones distintas. Para las **operaciones
-simples** arrastramos las operaciones simples de la primera
-implementación, actualizándolo con las operaciones nuevas y el nuevo
-tipo de dato para almacenar el resultado:
+::: mintedbox
+python class CalculadoraHandler: def \_\_init\_\_(self): self.log =
 
-``` {frame="single"}
-Result *
-operate_1_svc(operation arg1,  struct svc_req *rqstp)
-{
-    static Result  result;
+def calculate(self, op): match op.operating: case Operations.ADD: result
+= op.member1 + op.member2 print(f\"Calculando suma. Resultado: result\")
+return result case Operations.SUB: result = op.member1 - op.member2
+print(f\"Calculando resta. Resultado: result\") return result case
+Operations.MUL: result = op.member1 \* op.member2 print(f\"Calculando
+multiplicacion. Resultado: result\") return result case Operations.DIV:
+if op.member2 == 0: raise InvalidOperation(\"No se puede dividir por
+0\") result = op.member1 / op.member2 print(f\"Calculando division.
+Resultado: result\") return result case Operations.COS: result =
+math.cos(math.radians(op.member1)) print(f\"Calculando coseno.
+Resultado: result\") return result case Operations.SIN: result =
+math.sin(math.radians(op.member1)) print(f\"Calculando seno. Resultado:
+result\") return result case Operations.TAN: result =
+math.tan(math.radians(op.member1)) print(f\"Calculando tangente.
+Resultado: result\") return result case Operations.CONVg_r: result =
+math.radians(op.member1) print(f\"Convirtiendo a radianes. Resultado:
+result\") return result case Operations.CONVr_g: result =
+math.degrees(op.member1) print(f\"Convirtiendo a grados. Resultado:
+result\") return result
 
-    switch (arg1.operator)
-    {
-    case '+':
-        result.resultado = arg1.operator1 + arg1.operator2;
-        break;
-
-    case '-':
-        result.resultado = arg1.operator1 - arg1.operator2;
-        break;
-
-    case '*':
-        result.resultado = arg1.operator1 * arg1.operator2;
-        break;
-
-    case '/':
-        result.resultado = arg1.operator1 / arg1.operator2;
-        break;
-
-    case '^':
-        result.resultado = pow(arg1.operator1, arg1.operator2);
-        break;
-
-    case 'q':
-        result.resultado = sqrt(arg1.operator2);
-        break;
-
-    case 's':
-        result.resultado = sin(arg1.operator2);
-        break;
-
-    case 'c':
-        result.resultado = cos(arg1.operator2);
-        break;
-
-    case 't':
-        result.resultado = tan(arg1.operator2);
-        break;
-    
-    case 'l':
-        result.resultado = log(arg1.operator2);
-        break;
-        
-    default:
-        break;
-    }
-    return &result;
-}
-```
-
-Para las operaciones vectoriales un poco lo mismo. Como son más
-complejas estas operaciones, para cada una de ellas tenemos una función
-distinta. Dentro del procedimiento, identificamos la operación, la
-realizamos y la devolvemos:
-
-``` {frame="single"}
-Result suma(operationVector operation)
-{
-    Result result;
-    for (int i = 0; i < 3; ++i)
-    {
-        result.vec[i] = operation.vec1[i] + operation.vec2[i];
-    }
-    return result;
-}
-
-Result resta(operationVector operation)
-{
-    Result result;
-    for (int i = 0; i < 3; ++i)
-    {
-        result.vec[i] = operation.vec1[i] - operation.vec2[i];
-    }
-    return result;
-}
-
-Result prodEscalar(operationVector operation)
-{
-    Result result;
-/*  for (int i = 0; i < 3; ++i)
-    {
-        result.vec[i] = operation.vec1[0] * operation.vec2[i];
-    } */
-    result.vec[0] = operation.vec1[0] * operation.vec2[0];
-    result.vec[1] = operation.vec1[0] * operation.vec2[1];
-    result.vec[2] = operation.vec1[0] * operation.vec2[2];
-
-    return result;
-}
-
-Result prodVectorial(operationVector operation)
-{
-    Result result;
-    result.vec[0] = operation.vec1[1] * operation.vec2[2] - operation.vec1[2] * operation.vec2[1];
-    result.vec[1] = operation.vec1[2] * operation.vec2[0] - operation.vec1[0] * operation.vec2[2];
-    result.vec[2] = operation.vec1[0] * operation.vec2[1] - operation.vec1[1] * operation.vec2[0];
-    return result;
-}
-```
-
-``` {frame="single"}
-Result *
-operate_vector_1_svc(operationVector arg1,  struct svc_req *rqstp)
-{
-    static Result  result;
-
-    switch (arg1.operator)
-    {
-    case '+':
-        result = suma(arg1);
-        break;
-    
-    case '-':
-        result = resta(arg1);
-        break;
-
-    case 'p':
-        result = prodEscalar(arg1);
-        break;
-    
-    case 'x':
-        result = prodVectorial(arg1);
-        break;
-
-    default:
-        break;
-    }
-
-    return &result;
-}
-```
+def calculateVec(self, op): result = \[\] match op.operating: case
+Operations.ADD: if len(op.member1) == len(op.member2) and
+len(op.member1) \> 0: for i in range(len(op.member1)):
+result.append(op.member1\[i\] + op.member2\[i\]) print(f\"Resultado de
+la suma de vectores result\") return result else: raise
+InvalidOperation(\"El tamaño de los vectores debe de ser el mismo,
+ademas de no nulo\") case Operations.SUB: if len(op.member1) ==
+len(op.member2) and len(op.member1) \> 0: for i in
+range(len(op.member1)): result.append(op.member1\[i\] - op.member2\[i\])
+print(f\"Resultado de la resta de vectores result\") return result else:
+raise InvalidOperation(\"El tamaño de los vectores debe de ser el mismo,
+ademas de no nulo\") case Operations.P_Esc: if len(op.member1) ==
+len(op.member2) and len(op.member1) \> 0: for i in
+range(len(op.member1)): result.append(0) result\[0\] += (op.member1\[i\]
+\* op.member2\[i\]) print(f\"Resultado del producto escalar result\")
+return result else: raise InvalidOperation(\"El tamaño de los vectores
+debe de ser el mismo, ademas de no nulo\") case Operations.MUL_Esc: if
+len(op.member2) \> 0: for i in range(len(op.member2)):
+result.append((op.member1\[0\] \* op.member2\[i\])) print(f\"Resultado
+de multiplicar el escalar result\") return result else: raise
+InvalidOperation(\"Introduzca un escalar y un vector de tamaño no
+nulo\")
+:::
 
 ## Cliente
 
-En el cliente creamos el bucle del programa, enseñando el menú principal
-y seleccionando la operación que se quiera realizar.
+El cliente se encarga de enseñar las operaciones disponibles y de cargar
+estas para mandarlas al servidor y mostrarlas, haciendo uso de las
+excepciones. Los diferentes menús por los que se puede navegar son:
 
-        ========== CALCULATOR ==========
-    [OPCIÓN 1] Operaciones normales
-    [OPCIÓN 2] Operaciones con vectores
-    [OPCIÓN 3] SALIR
-    ¿Qué desea realizar? -> _
+    ========== CALCULADORA ========== 
+    Seleccione un modo:
+    [ 1 ] Modo operaciones simples    
+    [ 2 ] Modo operaciones vectoriales
+    [ e ] Salir de la calculadora     
+    ¿Cuál desea realizar? -> 
 
-Dependiendo de la opción marcada, se llama a un procedimiento u otro del
-servidor. Cuando se llama, se cargan las operaciones respectivamente. Al
-igual que para las operaciones simples, tenemos nuevos métodos que nos
-ayudarán a cargar las operaciones vectoriales e incluso a visualizarlas.
-Para más información consultar el código de los métodos auxiliares. El
-código del cliente es el siguiente:
+    Para las operaciones simples:
+    ========== CALCULADORA ==========
+    Operaciones simples disponibles:
+    Suma                        [ + ]
+    Resta                       [ - ]
+    Multiplicación              [ * ]
+    División                    [ / ]
+    Seno (grados)               [sin]
+    Coseno (grados)             [cos]
+    Tangente                    [tan]
+    Convertir grados a radianes [g2r]
+    Convertir radianes a grados [r2g]
+    Salir --------------------> [ e ]
+    ¿Cuál desea realizar? -> 
 
-``` {frame="single"}
-void
-calculator_1(char *host)
-{
-    CLIENT *clnt;
-    Result  *result_1;
-    operation operate_1_arg1;
-    Result  *result_2;
-    operationVector operate_vector_1_arg1;
+    Para las operaciones vectoriales:
+    =========== CALCULADORA ============
+    Operaciones vectoriales disponibles:
+    Suma                           [ + ]
+    Resta                          [ - ]
+    Producto Escalar               [ · ]
+    Multiplicar vector por escalar [ * ]
+    Salir -----------------------> [ e ]
+    ¿Cuál desea realizar? ->
 
-#ifndef DEBUG
-    clnt = clnt_create (host, CALCULATOR, OPERATION, "udp");
-    if (clnt == NULL) {
-        clnt_pcreateerror (host);
-        exit (1);
-    }
-#endif  /* DEBUG */
-    int option = 0;
+Se ha modularizado las distintas tareas a realizar para que quede un
+main conciso:
 
-    do
-    {
-        printMainMenu();
-        scanf("%i", &option);
+::: mintedbox
+python if \_\_name\_\_ == \"\_\_main\_\_\": transport =
+TSocket.TSocket(\"localhost\", 9090) transport =
+TTransport.TBufferedTransport(transport) protocol =
+TBinaryProtocol.TBinaryProtocol(transport)
 
-        if (option == 1)
-        {
-            operate_1_arg1 = interactiveLoadSimpleOperation();
-            result_1 = operate_1(operate_1_arg1, clnt);
-            if (result_1 == (Result *) NULL) {
-                clnt_perror (clnt, "call failed");
-            }
-            printf("Resultado: %f\n", result_1->resultado);
-        }
-        else if (option == 2)
-        {
-            operate_vector_1_arg1 = interactiveLoadVectorialOperation();
-            result_2 = operate_vector_1(operate_vector_1_arg1, clnt);
-            if (result_2 == (Result *) NULL) {
-                clnt_perror (clnt, "call failed");
-            }
-            printf("Resultado: [");
-            for (int i = 0; i < 3; i++)
-            {
-                printf("%f ", result_2->vec[i]);
-            }
-            printf("]\n");
+client = Calculadora.Client(protocol)
 
-        }
-    } while (option < 3);
+try: transport.open() except: print(\"No se encontró el servidor\")
+sys.exit(1)
 
+option = \"\" while (option != \"e\"): printMainMenu() option = option =
+input(\"¿Cuál desea realizar? -\> \") if (option != \"e\"): match
+option: case \"1\": doSimpleOperation() case \"2\": doVectorOperation()
 
-#ifndef DEBUG
-    clnt_destroy (clnt);
-#endif   /* DEBUG */
-}
-```
+transport.close()
+:::
+
+Por un lado tenemos la realización de una operación simple, que es
+similar a la de la versión anterior:
+
+::: mintedbox
+python def doSimpleOperation(): operacion = Operation() option = \"\"
+while(option != \"e\"): printSimpleOperationMenu() option =
+input(\"¿Cuál desea realizar? -\> \") if option != \"e\": if option ==
+\"+\" or option == \"-\" or option == \"\*\" or option == \"/\": correct
+= False validInput = False
+
+while not validInput: try: validInput = True operacion.member1 =
+float(input(\"Introduzca el primer operando -\> \")) except ValueError:
+print(\"Por favor introduzca un número\") validInput = False
+
+validInput = False while not validInput: try: validInput = True
+operacion.member2 = float(input(\"Introduzca el segundo operando -\>
+\")) except ValueError: print(\"Por favor introduzca un número\")
+validInput = False
+
+match option: case \"+\": operacion.operating = Operations.ADD case
+\"-\": operacion.operating = Operations.SUB case \"\*\":
+operacion.operating = Operations.MUL case \"/\": operacion.operating =
+Operations.DIV
+
+try: print(f\"operacion = client.calculate(operacion)\") except
+InvalidOperation as error: print(\"Operación no válida:
+
+elif option == \"sin\" or option == \"cos\" or option == \"tan\" or
+option == \"g2r\" or option == \"r2g\": validInput = False while not
+validInput: try: validInput = True operacion.member1 =
+float(input(\"Introduzca el operando -\> \")) except ValueError:
+print(\"Por favor introduzca un número\") validInput = False
+
+match option: case \"sin\": operacion.operating = Operations.SIN case
+\"cos\": operacion.operating = Operations.COS case \"tan\":
+operacion.operating = Operations.TAN case \"g2r\": operacion.operating =
+Operations.CONVg_r case \"r2g\": operacion.operating =
+Operations.CONVr_g
+
+try: print(f\"operacion = client.calculate(operacion)\") except
+InvalidOperation as error: print(\"Operación no válida: else:
+print(\"Operación no válida. Por favor, introduzca una operación de
+entre las disponibles\")
+:::
+
+Y por otro lado tenemos la realización de las operaciones vectoriales:
+
+::: mintedbox
+python def doVectorOperation(): operacion = vector_Operation(\[\], \[\])
+option = \"\" while (option != \"e\"): printVectorOperationMenu() option
+= input(\"¿Cuál desea realizar? -\> \") if (option != \"e\"): if option
+== \"+\" or option == \"-\" or option == \"·\" or option == \"\*\": if
+option == \"\*\": operacion.member1.append(float(input(\"Introduce el
+escalar -\> \"))) validInput = False while not validInput: size =
+int(input(\"¿De qué tamaño es el vector? -\> \")) if size \> 0:
+validInput = True else: print(\"Introduzca un tamaño válido\") for i in
+range(size): validInput = False while not validInput: try: validInput =
+True operacion.member2.append(float(input(f\"vector\[i\] -\> \")))
+except ValueError: print(\"Por favor introduzca un número\") validInput
+= False
+
+operacion.operating = Operations.MUL_Esc try: print(f\"operacion = \")
+except InvalidOperation as error: print(\"Operación no válida:
+operacion.member1.clear() operacion.member2.clear()
+
+else: validInput = False while not validInput: size = int(input(\"¿De
+qué tamaño son los vectores? -\> \")) if size \> 0: validInput = True
+else: print(\"Introduzca un tamaño válido\") for i in range(size):
+validInput = False while not validInput: try: validInput = True
+operacion.member1.append(float(input(f\"vector1\[i\] -\> \"))) except
+ValueError: print(\"Por favor introduzca un número\") validInput = False
+for i in range(size): validInput = False while not validInput: try:
+validInput = True operacion.member2.append(float(input(f\"vector2\[i\]
+-\> \"))) except ValueError: print(\"Por favor introduzca un número\")
+validInput = False
+
+match option: case \"+\": operacion.operating = Operations.ADD case
+\"-\": operacion.operating = Operations.SUB case \"·\":
+operacion.operating = Operations.P_Esc
+
+try: print(f\"operacion = \") except InvalidOperation as error:
+print(\"Operación no válida: operacion.member1.clear()
+operacion.member2.clear() else: print(\"Operación no válida. Por favor,
+introduzca una operación de entre las disponibles\")
+:::
 
 # Manual de la calculadora
 
-## demo Calculadora
-
-Programa de la primera aproximación de la calculadora con operaciones
-simples.
-
-1.  Hacer cd a la carpeta /calculadora_v1
-
-2.  Ejecutar ./calc_server en una terminal
-
-3.  Ejecutar ./calc_cliente en otra terminal y poniendo la dirección del
-    servidor (localhost si es la misma máquina)
-
-4.  Usar el menú interactivo para cargado de operaciones en la
-    calculadora
-
-![Calculadora simple](img/calculadorademo.png)
-
 ## Calculadora final
 
-Programa final de la calculadora, operaciones simples, complejas y
-vectores. Los pasos son idénticos al anterior.
+Programa final de la calculadora, operaciones simples, vectores y manejo
+de excepciones. Nos situamos en la carpeta de gen_py, y ejecutamos en
+terminales separadas cada uno de los programas (primero el servidor y
+después el cliente)
 
-1.  Hacer cd a la carpeta /calculadora
+![Ejecución inicial de la calculadora](img/prueba_ejecucion_inicial.png)
 
-2.  Ejecutar ./calc_server en una terminal
+Probamos una operación simple:
 
-3.  Ejecutar ./calc_cliente en otra terminal y poniendo la dirección del
-    servidor (localhost si es la misma máquina)
+![Coseno de 0](img/coseno.png)
 
-4.  Usar el menú interactivo para cargado de operaciones en la
-    calculadora.
+Vemos como el servidor tiene en su consola un historial de las
+soluciones de las operaciones realizadas. Salimos del menú de
+operaciones simples con la opción 'e', y luego seleccionamos las
+operaciones vectoriales. Ahora una operación vectorial:
 
-![Calculadora cálculo complejo](img/calcsimple.png)
+![Multiplicación de un escalar por unvector](img/escalarporvector.png)
 
-![Calculadora cálculo vector](img/calccomplx.png)
+Probamos el uso de las excepciones (división por 0):
+
+![Excepción de operación no válida](img/div0.png)
+
+Vemos como no corta la ejecución ni del servidor ni del cliente, por lo
+que se maneja bien la excepción.
+
