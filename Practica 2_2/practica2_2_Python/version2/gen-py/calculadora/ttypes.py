@@ -264,7 +264,7 @@ class vector_Operation(object):
             case Operations.P_Esc:
                 toReturn = f"{self.member1} · {self.member2}"
             case Operations.MUL_Esc:
-                toReturn = f"{self.member1[0]} + {self.member2}"
+                toReturn = f"{self.member1[0]} * {self.member2}"
         return toReturn
 
 class InvalidOperation(TException):

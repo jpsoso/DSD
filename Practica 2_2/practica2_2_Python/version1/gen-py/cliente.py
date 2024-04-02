@@ -32,10 +32,8 @@ if __name__ == "__main__":
 
     client = Calculadora.Client(protocol)
 
-    try:
-        transport.open()
-    except:
-        print("No se pudo realizar la conexión al servidor")
+
+    transport.open()
 
     operacion = Operation()
 
