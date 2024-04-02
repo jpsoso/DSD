@@ -1,6 +1,7 @@
 from calculadora import Calculadora
 
 import math
+import sys
 
 from calculadora . ttypes import *
 
@@ -70,8 +71,8 @@ def doSimpleOperation():
                 
                 try:
                     print(f"{operacion} = {client.calculate(operacion)}")
-                except:
-                    print("[ERROR] -  División por 0")
+                except InvalidOperation as error:
+                    print("Operación no válida: %r" % error)
 
             elif option == "sin" or option == "cos" or option == "tan" or option == "g2r" or option == "r2g":
                 validInput = False
@@ -98,8 +99,8 @@ def doSimpleOperation():
 
                 try:
                     print(f"{operacion} = {client.calculate(operacion)}")
-                except:
-                    print("[ERROR] -  División por 0")
+                except InvalidOperation as error:
+                    print("Operación no válida: %r" % error)
             else:
                 print("Operación no válida. Por favor, introduzca una operación de entre las disponibles")                   
     
@@ -140,8 +141,10 @@ def doVectorOperation():
                                 validInput = False
 
                     operacion.operating = Operations.MUL_Esc
-
-                    print(f"{operacion} \n = \n {client.calculateVec(operacion)}")
+                    try:
+                        print(f"{operacion} \n = \n {client.calculateVec(operacion)}")
+                    except InvalidOperation as error:
+                        print("Operación no válida: %r" % error)
                     operacion.member1.clear()
                     operacion.member2.clear()  
                                 
@@ -180,7 +183,10 @@ def doVectorOperation():
                         case "·":
                             operacion.operating = Operations.P_Esc
 
-                    print(f"{operacion} \n = \n {client.calculateVec(operacion)}")
+                    try:
+                        print(f"{operacion} \n = \n {client.calculateVec(operacion)}")
+                    except InvalidOperation as error:
+                        print("Operación no válida: %r" % error)
                     operacion.member1.clear()
                     operacion.member2.clear()  
             else:
@@ -194,7 +200,11 @@ if __name__ == "__main__":
 
     client = Calculadora.Client(protocol)
 
-    transport.open()
+    try:
+        transport.open()
+    except:
+        print("No se encontró el servidor")
+        sys.exit(1)
 
     option = ""
     while (option != "e"):

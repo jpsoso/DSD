@@ -27,8 +27,12 @@ struct vector_Operation
    3: optional Operations operating
 }
 
+exception InvalidOperation {
+  1: string error
+}
+
 service Calculadora
 {
-   double calculate(1:Operation op),
-   list<double> calculateVec(1:vector_Operation op)
+   double calculate(1:Operation op) throws (1:InvalidOperation e),
+   list<double> calculateVec(1:vector_Operation op) throws (1:InvalidOperation e)
 }

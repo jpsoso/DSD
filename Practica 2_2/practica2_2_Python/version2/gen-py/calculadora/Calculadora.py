@@ -73,6 +73,8 @@ class Client(Iface):
         iprot.readMessageEnd()
         if result.success is not None:
             return result.success
+        if result.e is not None:
+            raise result.e
         raise TApplicationException(TApplicationException.MISSING_RESULT, "calculate failed: unknown result")
 
     def calculateVec(self, op):
@@ -105,6 +107,8 @@ class Client(Iface):
         iprot.readMessageEnd()
         if result.success is not None:
             return result.success
+        if result.e is not None:
+            raise result.e
         raise TApplicationException(TApplicationException.MISSING_RESULT, "calculateVec failed: unknown result")
 
 
@@ -146,6 +150,9 @@ class Processor(Iface, TProcessor):
             msg_type = TMessageType.REPLY
         except TTransport.TTransportException:
             raise
+        except InvalidOperation as e:
+            msg_type = TMessageType.REPLY
+            result.e = e
         except TApplicationException as ex:
             logging.exception('TApplication exception in handler')
             msg_type = TMessageType.EXCEPTION
@@ -169,6 +176,9 @@ class Processor(Iface, TProcessor):
             msg_type = TMessageType.REPLY
         except TTransport.TTransportException:
             raise
+        except InvalidOperation as e:
+            msg_type = TMessageType.REPLY
+            result.e = e
         except TApplicationException as ex:
             logging.exception('TApplication exception in handler')
             msg_type = TMessageType.EXCEPTION
@@ -252,12 +262,14 @@ class calculate_result(object):
     """
     Attributes:
      - success
+     - e
 
     """
 
 
-    def __init__(self, success=None,):
+    def __init__(self, success=None, e=None,):
         self.success = success
+        self.e = e
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -273,6 +285,11 @@ class calculate_result(object):
                     self.success = iprot.readDouble()
                 else:
                     iprot.skip(ftype)
+            elif fid == 1:
+                if ftype == TType.STRUCT:
+                    self.e = InvalidOperation.read(iprot)
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -286,6 +303,10 @@ class calculate_result(object):
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.DOUBLE, 0)
             oprot.writeDouble(self.success)
+            oprot.writeFieldEnd()
+        if self.e is not None:
+            oprot.writeFieldBegin('e', TType.STRUCT, 1)
+            self.e.write(oprot)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -306,6 +327,7 @@ class calculate_result(object):
 all_structs.append(calculate_result)
 calculate_result.thrift_spec = (
     (0, TType.DOUBLE, 'success', None, None, ),  # 0
+    (1, TType.STRUCT, 'e', [InvalidOperation, None], None, ),  # 1
 )
 
 
@@ -376,12 +398,14 @@ class calculateVec_result(object):
     """
     Attributes:
      - success
+     - e
 
     """
 
 
-    def __init__(self, success=None,):
+    def __init__(self, success=None, e=None,):
         self.success = success
+        self.e = e
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -402,6 +426,11 @@ class calculateVec_result(object):
                     iprot.readListEnd()
                 else:
                     iprot.skip(ftype)
+            elif fid == 1:
+                if ftype == TType.STRUCT:
+                    self.e = InvalidOperation.read(iprot)
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -418,6 +447,10 @@ class calculateVec_result(object):
             for iter20 in self.success:
                 oprot.writeDouble(iter20)
             oprot.writeListEnd()
+            oprot.writeFieldEnd()
+        if self.e is not None:
+            oprot.writeFieldBegin('e', TType.STRUCT, 1)
+            self.e.write(oprot)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -438,6 +471,7 @@ class calculateVec_result(object):
 all_structs.append(calculateVec_result)
 calculateVec_result.thrift_spec = (
     (0, TType.LIST, 'success', (TType.DOUBLE, None, False), None, ),  # 0
+    (1, TType.STRUCT, 'e', [InvalidOperation, None], None, ),  # 1
 )
 fix_spec(all_structs)
 del all_structs

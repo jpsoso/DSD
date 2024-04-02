@@ -4,8 +4,7 @@ import math
 
 from calculadora import Calculadora
 
-from calculadora . ttypes import Operations
-from calculadora . ttypes import Operation
+from calculadora . ttypes import *
 
 from thrift.transport import TSocket
 from thrift.transport import TTransport
@@ -36,12 +35,11 @@ class CalculadoraHandler:
                 print(f"Calculando multiplicación. Resultado: {result}")
                 return result
             case Operations.DIV:
-                try:
-                    result = op.member1 / op.member2
-                    print(f"Calculando división. Resultado: {result}")
-                    return result
-                except:
-                    print(" [ERROR] - División por 0 ")
+                if op.member2 == 0:
+                    raise InvalidOperation("No se puede dividir por 0")
+                result = op.member1 / op.member2
+                print(f"Calculando división. Resultado: {result}")
+                return result
             case Operations.COS:
                 result = math.cos(math.radians(op.member1))
                 print(f"Calculando coseno. Resultado: {result}")
@@ -73,7 +71,7 @@ class CalculadoraHandler:
                     print(f"Resultado de la suma de vectores {result}")
                     return result
                 else:
-                    raise Exception("El tamaño de los vectores debe de ser el mismo, además de no nulo")
+                    raise InvalidOperation("El tamaño de los vectores debe de ser el mismo, además de no nulo")
             case Operations.SUB:
                 if len(op.member1) == len(op.member2) and len(op.member1) > 0:
                     for i in range(len(op.member1)):
@@ -81,7 +79,7 @@ class CalculadoraHandler:
                     print(f"Resultado de la resta de vectores {result}")
                     return result
                 else:
-                    raise Exception("El tamaño de los vectores debe de ser el mismo, además de no nulo")
+                    raise InvalidOperation("El tamaño de los vectores debe de ser el mismo, además de no nulo")
             case Operations.P_Esc:
                 if len(op.member1) == len(op.member2) and len(op.member1) > 0:
                     for i in range(len(op.member1)):
@@ -90,7 +88,7 @@ class CalculadoraHandler:
                     print(f"Resultado del producto escalar {result}")
                     return result
                 else:
-                    raise Exception("El tamaño de los vectores debe de ser el mismo, además de no nulo")  
+                    raise InvalidOperation("El tamaño de los vectores debe de ser el mismo, además de no nulo")  
             case Operations.MUL_Esc:
                 if len(op.member2) > 0:
                     for i in range(len(op.member2)):
@@ -98,7 +96,7 @@ class CalculadoraHandler:
                     print(f"Resultado de multiplicar el escalar {result}")
                     return result
                 else:
-                    raise Exception("Introduzca un escalar y un vector de tamaño no nulo")     
+                    raise InvalidOperation("Introduzca un escalar y un vector de tamaño no nulo")     
 
 
 
