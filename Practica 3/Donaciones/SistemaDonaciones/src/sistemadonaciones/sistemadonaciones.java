@@ -269,15 +269,6 @@ public class sistemadonaciones extends UnicastRemoteObject implements interfaces
     public void ping() throws RemoteException
     {
         System.out.println("soy " + this.nombre + ": PING!!");
-        /*try {
-            // Crea el stub para el cliente especificando el nombre del servidor
-            Registry mireg = LocateRegistry.getRegistry("", 1099);
-            interfacesistemadonaciones sistema = (interfacesistemadonaciones) mireg.lookup("ssistemaDonacion2");
-            sistema.ping();
-        } 
-        catch(NotBoundException | RemoteException e) {
-            System.err.println("Exception del sistema: " + e);
-        }*/
     }
 
 }

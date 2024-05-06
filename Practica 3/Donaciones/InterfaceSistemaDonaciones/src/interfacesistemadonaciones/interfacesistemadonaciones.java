@@ -39,6 +39,11 @@ public interface interfacesistemadonaciones extends Remote {
     
     public String getNombre() throws RemoteException;
     
+    public boolean iniciaSesion(String nombreUsuario, String contrasena) throws RemoteException;
+    
+    public boolean comprueba(String nombreUsuario, String contrasena) throws RemoteException;
+
+    
     // Añadir operacion de inicio de sesion 
     
     public void ping() throws RemoteException;
