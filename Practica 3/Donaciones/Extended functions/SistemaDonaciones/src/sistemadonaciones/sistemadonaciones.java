@@ -31,8 +31,8 @@ public class sistemadonaciones extends UnicastRemoteObject implements interfaces
     public sistemadonaciones(String nombre, String replicaNombre) throws RemoteException
     {
         this.nombre = nombre;
-        this.clientes = new HashMap<String, Cliente>();
-        this.historialDonaciones = new HashMap<String, Float>();
+        this.clientes = new HashMap<>();
+        this.historialDonaciones = new HashMap<>();
         this.replicaNombre = replicaNombre;
         this.replica = null;
         this.subtotal = 0;
@@ -271,6 +271,15 @@ public class sistemadonaciones extends UnicastRemoteObject implements interfaces
             Cliente cliente = this.clientes.get(nombreUsuario);
             if (cliente.compruebaContrasena(contrasena) && cliente.getDonacionesHechas() > 0)
             {
+                System.out.println("Checkpoint 1");
+                ArrayList<String> donaciones = new ArrayList<>();
+                HashMap<String, Float> copy = new HashMap<>(this.historialDonaciones);
+                System.out.println("Checkpoint 2");
+                copy.entrySet().stream().sorted(Map.Entry.<String, Float> comparingByValue().reversed()).forEach((entry)->donaciones.add(entry.getKey() + " Donado: " + entry.getValue()));                
+                System.out.println(donaciones);
+                return donaciones;
+                
+               /* 
                 // Ordeno el map de historial de los clientes con sus donaciones
                 HashMap<String, Float> ordered = new HashMap<>(this.historialDonaciones);
                 ordered.entrySet().stream().sorted(Map.Entry.<String, Float> comparingByValue());
@@ -286,7 +295,7 @@ public class sistemadonaciones extends UnicastRemoteObject implements interfaces
                     ++i;
                 }
                 
-                return donaciones;
+                return donaciones;*/
             }
         }
         return new ArrayList<>();

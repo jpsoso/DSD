@@ -56,7 +56,7 @@ public class clientedonaciones {
             // Empezamos las operaciones.
             int option = 0, operation = 0;
             String username = "", password = "";
-            boolean sesionIniciada = true;
+            boolean sesionIniciada = false;
             Scanner teclado = new Scanner (System.in);
         
             do {
@@ -74,6 +74,7 @@ public class clientedonaciones {
                         if (sistema.registrar(username, password))
                         {
                             System.out.println(" Registro realizado con éxito al usuario " + username);
+                            sesionIniciada = true;
                         }
                         else
                         {
@@ -161,12 +162,14 @@ public class clientedonaciones {
                                     System.out.println(" Introduzca un numero válida: ");
                                     top = teclado.nextInt();
                                 }
-                                //List<String> topN = topDonaciones.subList(0, top);
-                                System.out.println(" El top " + top + " donaciones del servidor es: " + topDonaciones);
-                                /*for(String element : topN)
+                                List<String> topN = topDonaciones.subList(0, top);
+                                System.out.println(" El top " + top + " donaciones del servidor es: ");
+                                int i = 1;
+                                for(String element : topN)
                                 {
-                                    System.out.print(" " + element);
-                                }*/   
+                                    System.out.println(" "+ i + "º " + element);
+                                    ++i;
+                                }   
                             }
                             else
                             {
