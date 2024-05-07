@@ -2,7 +2,7 @@
 # ejecutar = Macro para compilación y ejecución del programa ejemplo
 # en una sola maquina Unix de nombre localhost.
 echo
-echo "Lanzando el ligador de RMI … "
+echo "Lanzando el ligador de RMI ... "
 rmiregistry &
 echo
 echo "Compilando con javac ..."

@@ -20,68 +20,148 @@ public class clientedonaciones {
     /**
      * @param args the command line arguments
      */
+    public static void printLogInSignInMenu()
+    {
+        System.out.println("================ BENEFIC.ORG ================");
+        System.out.println(" Bienvenido. Por favor, identifíquese");
+        System.out.println(" [1] Registrarse");
+        System.out.println(" [2] Iniciar sesión");
+        System.out.println(" [3] Salir");
+        System.out.println("=============================================");
+    }
+    
+    public static void printOperationMenu(String username)
+    {
+        System.out.println("================ BENEFIC.ORG ================");
+        System.out.println(" sesión iniciada: " + username);
+        System.out.println(" Elija una operación:");
+        System.out.println(" [1] Hacer donación");
+        System.out.println(" [2] Consultar total del servidor");
+        System.out.println(" [3] Listado de donantes");
+        System.out.println(" [4] Top 5 donaciones");
+        System.out.println(" [5] Cerrar sesión");
+        System.out.println("=============================================");
+    }
+    
     public static void main(String[] args) {
-        String host = "";
-        Scanner teclado = new Scanner (System.in);
-        System.out.println ("Escriba el nombre o IP del servidor: ");
-        //ost = teclado.nextLine();
-        //host = "localhost";
-
-        // Crea e instala el gestor de seguridad
+        
         if (System.getSecurityManager() == null) {System.setSecurityManager(new SecurityManager());}
         try {
-            // Crea el stub para el cliente especificando el nombre del servidor
-            Registry mireg = LocateRegistry.getRegistry(host, 1099);
+            
+            // Hacemos la conexión con el objeto remoto
+            Registry mireg = LocateRegistry.getRegistry("", 1099);
             interfacesistemadonaciones sistema = (interfacesistemadonaciones) mireg.lookup("sistemaDonacion1");
-            //sistema.ping();
-            if(sistema.registrar("Prueba1", "Prueba1"))
-            {
-                System.out.println("Se ha registrado el cliente");
-            }
             
-            if(sistema.registrar("Prueba2", "Prueba2"))
-            {
-                System.out.println("Se ha registrado el cliente");
-            }
-            
-            if(sistema.registrar("Prueba3", "Prueba3"))
-            {
-                System.out.println("Se ha registrado el cliente");
-            } 
-            
-            if (sistema.donacion("Prueba1", "Prueba1", 5))
-            {
-                System.out.println("Donación realizada con éxito");
-            }
+            // Empezamos las operaciones.
+            int option = 0, operation = 0;
+            String username = "", password = "";
+            boolean sesionIniciada = true;
+            Scanner teclado = new Scanner (System.in);
+        
+            do {
+                printLogInSignInMenu();
+                option = teclado.nextInt();
+                switch (option)
+                {
+                    case 1:
+                        System.out.println("==============  Registro de cliente ==============");
+                        System.out.println(" Introduce nombre de usuario: ");
+                        username = teclado.next();
+                        System.out.println(" Introduce la contraseña: ");
+                        password = teclado.next();
 
-            
-            if (sistema.donacion("Prueba2", "Prueba2", 7))
-            {
-                System.out.println("Donación realizada con éxito");
-            } 
-            
-            if (sistema.donacion("Prueba3", "Prueba3", 7))
-            {
-                System.out.println("Donación realizada con éxito");
-            }             
-            
-//            float donado = sistema.subtotalDonado("Prueba1", "Prueba1");
-//            
-//            if (donado != -1)
-//            {
-//                System.out.println("El subtotal del sistema es: " + donado);
-//            }
-//            
-//            float donado2 = sistema.subtotalDonado("Prueba2", "Prueba1");
-//            
-//            if (donado2 != -1)
-//            {
-//                System.out.println("El subtotal del sistema es: " + donado2);
-//            } 
+                        if (sistema.registrar(username, password))
+                        {
+                            System.out.println(" Registro realizado con éxito al usuario " + username);
+                        }
+                        else
+                        {
+                            System.out.println(" No se ha podido llevar a cabo el registro del usuario " + username);
+                        }
+                        break;
+                    
+                    case 2:
+                        System.out.println("==============  Inicio sesión de cliente ==============");
+                        System.out.println(" Introduce nombre de usuario: ");
+                        username = teclado.next();
+                        System.out.println(" Introduce la contraseña: ");
+                        password = teclado.next();
 
-              ArrayList<String> listaDonantes = sistema.listadoDonantes("Prueba2", "Prueba2");
-              System.out.println(listaDonantes.toString());
-        } 
+                        if (sistema.iniciaSesion(username, password))
+                        {
+                            System.out.println(" Credenciales correctas. Bienvenido de vuelta " + username);
+                            sesionIniciada = true;
+                        }
+                        else
+                        {
+                            System.out.println(" Credenciales incorrectas, por favor revíselas");
+                        }
+                        break;
+                }
+                
+                while (sesionIniciada)
+                {
+                    printOperationMenu(username);
+                    operation = teclado.nextInt();
+                    switch (operation)
+                    {
+                        case 1:
+                            float cantidad = 0;
+                            System.out.println("==============  Hacer donación ==============");
+                            System.out.println(" Introduzca la cantidad a donar: ");
+                            cantidad = teclado.nextFloat();
+                            while (cantidad <= 0)
+                            {
+                                System.out.println(" Introduzca una cantidad válida: ");
+                                cantidad = teclado.nextFloat();
+                            }
+                            if (sistema.donacion(username, password, cantidad))
+                            {
+                                System.out.println(" Donación realizada con éxito");
+                            }
+                            else
+                            {
+                                System.out.println(" No ha sido posible realizar la donación, por favor inténtelo más tarde");
+                            }
+                            break;
+                        case 2:
+                            float subTotal = sistema.subtotalDonado(username, password);
+                            if (subTotal > -1)
+                            {
+                                System.out.println(" El subtotal de este servidor es de: " + subTotal + "€");
+                            }
+                            else
+                            {
+                                System.out.println(" Vaya, parece que no es posible que consultes el subtotal.\n Realiza una donación para poder consultarlo");
+                            }
+                            break;
+                        case 3:
+                            ArrayList<String> donantes = sistema.listadoDonantes(username, password);
+                            if (!donantes.isEmpty())
+                            {
+                                System.out.println(" La lista de donantes del servidor: " + donantes);
+                            }
+                            else
+                            {
+                                System.out.println(" Vaya, parece que no es posible que consultes el la lista de donantes.\n Realiza una donación para poder consultarla");
+                            }
+                            break;
+                            
+                        case 4:
+                            break;
+                            
+                        case 5:
+                            sesionIniciada = false;
+                            break;
+                    }
+                }
+                
+            } while (option < 3 && option > 0);
+            
+        
+             
+        }  
+            
         catch(NotBoundException | RemoteException e) {
             System.err.println("Exception del sistema: " + e);
         }

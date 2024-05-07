@@ -158,7 +158,7 @@ public class sistemadonaciones extends UnicastRemoteObject implements interfaces
         if (this.existeCliente(nombreUsuario))
         {
             Cliente cliente = this.clientes.get(nombreUsuario);
-            if (cliente.compruebaContrasena(contrasena))
+            if (cliente.compruebaContrasena(contrasena) && cliente.getDonacionesHechas() > 0)
             {
                 ArrayList<String> donantes = new ArrayList<>();
                 for ( String donante : clientes.keySet())

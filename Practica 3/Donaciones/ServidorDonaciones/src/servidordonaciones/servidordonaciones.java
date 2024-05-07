@@ -28,6 +28,9 @@ public class servidordonaciones {
            sistemadonaciones sistemaDonacion = new sistemadonaciones("sistemaDonacion1", "sistemaDonacion2");
            Naming.rebind("sistemaDonacion1", sistemaDonacion);
            System.out.println("Servidor con sistema de Donaciones lanzado");
+           sistemadonaciones sistemaDonacion2 = new sistemadonaciones("sistemaDonacion2", "sistemaDonacion1");
+           Naming.rebind("sistemaDonacion2", sistemaDonacion2);
+           System.out.println("Servidor con sistema de Donaciones 2 lanzado");        
         } 
         catch (RemoteException | MalformedURLException e) {
            System.out.println("Exception: " + e.getMessage());
