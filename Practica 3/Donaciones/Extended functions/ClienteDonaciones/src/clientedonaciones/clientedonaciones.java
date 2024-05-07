@@ -21,7 +21,7 @@ public class clientedonaciones {
     /**
      * @param args the command line arguments
      */
-    public static void printLogInSignInMenu()
+    public static void printLogInSignInMenu(String servidor)
     {
         System.out.println("================ BENEFIC.ORG ================");
         System.out.println(" Bienvenido. Por favor, identifíquese");
@@ -29,9 +29,10 @@ public class clientedonaciones {
         System.out.println(" [2] Iniciar sesión");
         System.out.println(" [3] Salir");
         System.out.println("=============================================");
+        System.out.println(" \t\tconnected: " + servidor);
     }
     
-    public static void printOperationMenu(String username)
+    public static void printOperationMenu(String username, String servidor)
     {
         System.out.println("================ BENEFIC.ORG ================");
         System.out.println(" sesión iniciada: " + username);
@@ -40,8 +41,10 @@ public class clientedonaciones {
         System.out.println(" [2] Consultar total del servidor");
         System.out.println(" [3] Listado de donantes");
         System.out.println(" [4] Top de donaciones");
-        System.out.println(" [5] Cerrar sesión");
+        System.out.println(" [5] Media de las donaciones");
+        System.out.println(" [6] Cerrar sesión");
         System.out.println("=============================================");
+        System.out.println(" \t\tconnected: " + servidor);
     }
     
     public static void main(String[] args) {
@@ -49,18 +52,41 @@ public class clientedonaciones {
         if (System.getSecurityManager() == null) {System.setSecurityManager(new SecurityManager());}
         try {
             
+            Scanner teclado = new Scanner (System.in);
             // Hacemos la conexión con el objeto remoto
             Registry mireg = LocateRegistry.getRegistry("", 1099);
+            int connection = 0;
+            String servidor = "";
+            boolean seleccionado = false;
+            do
+            {
+                System.out.println("Elige a que servidor conectarse: ");
+                System.out.println("[1] Réplica 1 ");
+                System.out.println("[2] Réplica 2 ");
+                connection = teclado.nextInt();
+                
+                switch(connection)
+                {
+                    case 1:
+                        servidor = "sistemaDonacion1";
+                        seleccionado = true;
+                        break;
+                    case 2:
+                        servidor = "sistemaDonacion2";
+                        seleccionado = true;
+                        break;                     
+                }
+            } while (!seleccionado);
+            
             interfacesistemadonaciones sistema = (interfacesistemadonaciones) mireg.lookup("sistemaDonacion1");
             
             // Empezamos las operaciones.
             int option = 0, operation = 0;
             String username = "", password = "";
             boolean sesionIniciada = false;
-            Scanner teclado = new Scanner (System.in);
         
             do {
-                printLogInSignInMenu();
+                printLogInSignInMenu(servidor);
                 option = teclado.nextInt();
                 switch (option)
                 {
@@ -103,7 +129,7 @@ public class clientedonaciones {
                 
                 while (sesionIniciada)
                 {
-                    printOperationMenu(username);
+                    printOperationMenu(username, servidor);
                     operation = teclado.nextInt();
                     switch (operation)
                     {
@@ -130,7 +156,7 @@ public class clientedonaciones {
                             float subTotal = sistema.subtotalDonado(username, password);
                             if (subTotal > -1)
                             {
-                                System.out.println(" El subtotal de este servidor es de: " + subTotal + "€");
+                                System.out.println(" El subtotal del servidor registrado es de: " + subTotal + "€");
                             }
                             else
                             {
@@ -176,14 +202,24 @@ public class clientedonaciones {
                                 System.out.println(" Vaya, parece que no es posible que consultes el top de donaciones.\n Realiza una donación para poder consultarlo");
                             }                            
                             break;
-                            
                         case 5:
+                            float media = sistema.mediaDonaciones(username, password);
+                            if (media != -1)
+                            {
+                                System.out.println(" La media de donaciones es de: " + media + "€");  
+                            }
+                            else
+                            {
+                                System.out.println(" Vaya, parece que no es posible que consultes la media de donaciones.\n Realiza una donación para poder consultarlo");
+                            }                            
+                            break;                            
+                        case 6:
                             sesionIniciada = false;
                             break;
                     }
                 }
                 
-            } while (option < 3 && option > 0);
+            } while (option != 3);
             
         
              

@@ -97,7 +97,14 @@ public class sistemadonaciones extends UnicastRemoteObject implements interfaces
                 this.clientes.replace(nombreUsuario, cliente);
                 System.out.println("[" + this.nombre + "]: Se ha registrado la donación de " + cantidad + " por el cliente " + nombreUsuario + " (Total donado: " + cliente.getTotalDonado() + ")");
                 this.subtotal += cantidad;
-                this.historialDonaciones.put(nombreUsuario, (float) cantidad);
+                if (historialDonaciones.containsKey(nombreUsuario))
+                {
+                    historialDonaciones.put(nombreUsuario, historialDonaciones.get(nombreUsuario) + cantidad);
+                }
+                else
+                {
+                    this.historialDonaciones.put(nombreUsuario, (float) cantidad);
+                }
                 return true;
             }
         }
@@ -278,29 +285,47 @@ public class sistemadonaciones extends UnicastRemoteObject implements interfaces
                 copy.entrySet().stream().sorted(Map.Entry.<String, Float> comparingByValue().reversed()).forEach((entry)->donaciones.add(entry.getKey() + " Donado: " + entry.getValue()));                
                 System.out.println(donaciones);
                 return donaciones;
-                
-               /* 
-                // Ordeno el map de historial de los clientes con sus donaciones
-                HashMap<String, Float> ordered = new HashMap<>(this.historialDonaciones);
-                ordered.entrySet().stream().sorted(Map.Entry.<String, Float> comparingByValue());
-                
-                // Resultado
-                ArrayList<String> donaciones = new ArrayList<>();
-                int i = 1;
-                for (Map.Entry entry : ordered.entrySet())
-                {
-                    String toAdd = i + "º " + entry.getKey() + ". Donado: " + entry.getValue();
-                    System.out.println(toAdd);
-                    donaciones.add(toAdd);
-                    ++i;
-                }
-                
-                return donaciones;*/
             }
         }
         return new ArrayList<>();
     }
     
+
+    @Override
+    public float mediaDonaciones(String nombreUsuario, String contrasena) throws RemoteException
+    {
+        if (this.existeCliente(nombreUsuario))
+        {
+            return this.media(nombreUsuario, contrasena);
+        }
+        else 
+        {
+            if (replica != null)
+            {
+                return replica.media(nombreUsuario, contrasena);
+            }
+        }       
+        return -1;        
+    }
+    
+    @Override
+    public float media(String nombreUsuario, String contrasena) throws RemoteException
+    {
+        if (this.existeCliente(nombreUsuario))
+        {
+            Cliente cliente = this.clientes.get(nombreUsuario);
+            if (cliente.compruebaContrasena(contrasena) && cliente.getDonacionesHechas() > 0)
+            {
+                float average = 0;
+                for (Map.Entry entry : this.historialDonaciones.entrySet())
+                {
+                    average += (float) entry.getValue();
+                }
+                return average / this.historialDonaciones.size();
+            }
+        }
+        return -1;        
+    }
 
     
     private interfacesistemadonaciones getReplica()
@@ -330,28 +355,3 @@ public class sistemadonaciones extends UnicastRemoteObject implements interfaces
 
 }
 
-// Test code 
-/*
-
-import java.util.ArrayList;
-import java.util.Map; 
-import java.util.HashMap;
-
-public class MyClass {
-    public static void main(String args[]) {
-        HashMap<String, Float> historialDonaciones = new HashMap<>();
-        
-        historialDonaciones.put("raul", (float) 1.0);
-        historialDonaciones.put("juanmi", (float) 2.0);
-        historialDonaciones.put("david", (float) 3.0);
-        
-        ArrayList<String> donaciones = new ArrayList<>();
-        HashMap<String, Float> copy = new HashMap<>(historialDonaciones);
-        
-        copy.entrySet().stream().sorted(Map.Entry.<String, Float> comparingByValue().reversed()).forEach((entry)->donaciones.add(entry.getKey() + " Donado: " + entry.getValue()));
-        
-                
-        System.out.println(donaciones);
-    }
-}
-*/

@@ -47,7 +47,9 @@ public interface interfacesistemadonaciones extends Remote {
     
     public ArrayList<String> top(String nombreUsuario, String contrasena) throws RemoteException;
     
-    // Añadir operacion de inicio de sesion 
+    public float mediaDonaciones(String nombreUsuario, String contrasena) throws RemoteException;
+    
+    public float media(String nombreUsuario, String contrasena) throws RemoteException;
     
     public void ping() throws RemoteException;
     
